@@ -1,0 +1,22 @@
+<svg width="1400" height="1700" viewBox="0 0 1400 1700" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="la-bldg_F1">
+<path id="flame" fill-rule="evenodd" clip-rule="evenodd" d="M381 1182.5V1027.5H581V1182.5H381Z" stroke="blue"/>
+<path id="atrium" fill-rule="evenodd" clip-rule="evenodd" d="M552 1071.5H410V1143H552V1071.5Z" stroke="blue"/>
+<path id="hr_1-4" fill-rule="evenodd" clip-rule="evenodd" d="M414.5 1182.5H381V1151H414.5V1182.5Z" stroke="blue"/>
+<path id="hr_1-3" fill-rule="evenodd" clip-rule="evenodd" d="M448 1151H414.5V1182.5H448V1151Z" stroke="blue"/>
+<path id="locker_1" fill-rule="evenodd" clip-rule="evenodd" d="M481 1182.5H448V1151H481V1182.5Z" stroke="blue"/>
+<path id="hr_1-2" fill-rule="evenodd" clip-rule="evenodd" d="M514.5 1182.5H481V1151H514.5V1182.5Z" stroke="blue"/>
+<path id="hr_1-1" fill-rule="evenodd" clip-rule="evenodd" d="M547.5 1182.5H514.5V1151H547.5V1182.5Z" stroke="blue"/>
+<path id="wc_men_la-bldg_f1" fill-rule="evenodd" clip-rule="evenodd" d="M564.5 1083H581V1107H564.5V1083Z" stroke="blue"/>
+<path id="stair_la-bldg_f1-f2_west" fill-rule="evenodd" clip-rule="evenodd" d="M398 1083.5H381V1099H390V1091.5H398V1083.5Z" stroke="blue"/>
+<path id="stair_la-bldg_f1-f1_east" fill-rule="evenodd" clip-rule="evenodd" d="M572.5 1123V1115H581V1131H564.5V1123H572.5Z" stroke="blue"/>
+<path id="stg_la-bldg_f1_west" fill-rule="evenodd" clip-rule="evenodd" d="M398 1099H381V1107H398V1099Z" stroke="blue"/>
+<path id="wc_women_la-bldg_f1" fill-rule="evenodd" clip-rule="evenodd" d="M398 1107H381V1131H398V1107Z" stroke="blue"/>
+<path id="stg_la-bldg_f1_east" fill-rule="evenodd" clip-rule="evenodd" d="M564.5 1115V1107H581V1115H564.5Z" stroke="blue"/>
+<path id="lab_chem" fill-rule="evenodd" clip-rule="evenodd" d="M497.5 1027.5H447.5V1071.5H497.5V1027.5Z" stroke="blue"/>
+<path id="po_chem" fill-rule="evenodd" clip-rule="evenodd" d="M531 1027.5H497.5V1063.5H531V1027.5Z" stroke="blue"/>
+<path id="lr_chem" fill-rule="evenodd" clip-rule="evenodd" d="M581 1063.5H539.5V1027.5H581V1063.5Z" stroke="blue"/>
+<path id="or_2" fill-rule="evenodd" clip-rule="evenodd" d="M422.5 1027.5H381V1063.5H422.5V1027.5Z" stroke="blue"/>
+<path id="or-1" fill-rule="evenodd" clip-rule="evenodd" d="M447.5 1027.5H422.5V1071.5H447.5V1027.5Z" stroke="blue"/>
+</g>
+</svg>
