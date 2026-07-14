@@ -130,9 +130,17 @@
 
 					if (isZoomedIn && isLaBldgInCenter) {
 						zoomedBldg = 'la';
+						if (floorLayers['F1'] && map.hasLayer(floorLayers['F1'])) floorLayers['F1'].remove();
+						if (floorLayers['F2'] && map.hasLayer(floorLayers['F2'])) floorLayers['F2'].remove();
+						if (floorLayers['F3'] && map.hasLayer(floorLayers['F3'])) floorLayers['F3'].remove();
+						if (floorLayers['F4'] && map.hasLayer(floorLayers['F4'])) floorLayers['F4'].remove();
 						floorLayers = laBldgFloorLayers;
 					} else if (isZoomedIn && isSsBldg1InCenter) {
 						zoomedBldg = 'ss1';
+						if (floorLayers['F1'] && map.hasLayer(floorLayers['F1'])) floorLayers['F1'].remove();
+						if (floorLayers['F2'] && map.hasLayer(floorLayers['F2'])) floorLayers['F2'].remove();
+						if (floorLayers['F3'] && map.hasLayer(floorLayers['F3'])) floorLayers['F3'].remove();
+						if (floorLayers['F4'] && map.hasLayer(floorLayers['F4'])) floorLayers['F4'].remove();
 						floorLayers = ssBldg1FloorLayers;
 					} else {
 						zoomedBldg = '';
