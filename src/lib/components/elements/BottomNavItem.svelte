@@ -6,8 +6,6 @@
 	}>();
 </script>
 
-<!-- メモ -->
-<!-- googleのiconのやつを使ってるから後で権利表示のやつをやる -->
 <button
 	class="flex h-15 w-full bg-white border-t-2 justify-center items-center {isActive
 		? 'border-blue-400'
