@@ -45,6 +45,8 @@
         devShells.default = pkgs.mkShell {
           packages = with pkgs; [
             bun
+            svelte-language-server
+            typescript-language-server
           ];
           shellHook = config.pre-commit.installationScript;
         };
