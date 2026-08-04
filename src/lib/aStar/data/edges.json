@@ -1,0 +1,122 @@
+[
+	{
+		"fromNode": "node_la_f1_entrance",
+		"toNode": "node_la_f1_cnr_entrance",
+		"isStairs": false
+	},
+	{
+		"fromNode": "node_la_f1_cnr_entrance",
+		"toNode": "node_la_f1_hr_1-1",
+		"isStairs": false
+	},
+	{
+		"fromNode": "node_la_f1_hr_1-1",
+		"toNode": "node_la_f1_hr_1-2",
+		"isStairs": false
+	},
+	{
+		"fromNode": "node_la_f1_hr_1-2",
+		"toNode": "node_la_f1_locker-1",
+		"isStairs": false
+	},
+	{
+		"fromNode": "node_la_f1_locker-1",
+		"toNode": "node_la_f1_hr_1-3",
+		"isStairs": false
+	},
+	{
+		"fromNode": "node_la_f1_hr_1-3",
+		"toNode": "node_la_f1_cnr_1-4",
+		"isStairs": false
+	},
+	{
+		"fromNode": "node_la_f1_cnr_1-4",
+		"toNode": "node_la_f1_hr_1-4",
+		"isStairs": false
+	},
+	{
+		"fromNode": "node_la_f1_cnr_1-4",
+		"toNode": "node_la_f1_cnr_ee_sw",
+		"isStairs": false
+	},
+	{
+		"fromNode": "node_la_f1_cnr_ee_sw",
+		"toNode": "node_la_f1_ee_sw",
+		"isStairs": false
+	},
+	{
+		"fromNode": "node_la_f1_cnr_ee_sw",
+		"toNode": "node_la_f1_wc-womens",
+		"isStairs": false
+	},
+	{
+		"fromNode": "node_la_f1_wc-womens",
+		"toNode": "node_la_f1_stg_west",
+		"isStairs": false
+	},
+	{
+		"fromNode": "node_la_f1_stg_west",
+		"toNode": "node_la_f1_stair_west",
+		"isStairs": false
+	},
+	{
+		"fromNode": "node_la_f1_stair_west",
+		"toNode": "node_la_f1_cnr_ee_nw",
+		"isStairs": false
+	},
+	{
+		"fromNode": "node_la_f1_cnr_ee_nw",
+		"toNode": "node_la_f1_cnr_or2",
+		"isStairs": false
+	},
+	{
+		"fromNode": "node_la_f1_cnr_or2",
+		"toNode": "node_la_f1_or",
+		"isStairs": false
+	},
+	{
+		"fromNode": "node_la_f1_cnr_entrance",
+		"toNode": "node_la_f1_stair_east",
+		"isStairs": false
+	},
+	{
+		"fromNode": "node_la_f1_stair_east",
+		"toNode": "node_la_f1_stg_east",
+		"isStairs": false
+	},
+	{
+		"fromNode": "node_la_f1_stg_east",
+		"toNode": "node_la_f1_wc-mens",
+		"isStairs": false
+	},
+	{
+		"fromNode": "node_la_f1_wc-mens",
+		"toNode": "node_la_f1_cnr_ee_ne",
+		"isStairs": false
+	},
+	{
+		"fromNode": "node_la_f1_cnr_ee_ne",
+		"toNode": "node_la_f1_ee_ne",
+		"isStairs": false
+	},
+	{
+		"fromNode": "node_la_f1_cnr_ee_ne",
+		"toNode": "node_la_f1_cnr_lr-chem",
+		"isStairs": false
+	},
+	{
+		"fromNode": "node_la_f1_cnr_lr-chem",
+		"toNode": "node_la_f1_lr-chem",
+		"isStairs": false
+	},
+	{
+		"fromNode": "node_la_f1_lr-chem",
+		"toNode": "node_la_f1_po-chem",
+		"isStairs": false
+	},
+	{
+		"fromNode": "node_la_f1_po-chem",
+		"toNode": "node_la_f1_lab-chem",
+		"isStairs": false
+	}
+]
