@@ -1,0 +1,22 @@
+[
+	{
+		"fromNode": "node_la_f1_stair_west",
+		"toNode": "node_la_f2_stair_west",
+		"isStairs": true
+	},
+	{
+		"fromNode": "node_la_f2_stair_west",
+		"toNode": "node_la_f3_stair_west",
+		"isStairs": true
+	},
+	{
+		"fromNode": "node_la_f1_stair_east",
+		"toNode": "node_la_f2_stair_east",
+		"isStairs": true
+	},
+	{
+		"fromNode": "node_la_f2_stair_east",
+		"toNode": "node_la_f3_stair_east",
+		"isStairs": true
+	}
+]
