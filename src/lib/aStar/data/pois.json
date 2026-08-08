@@ -1,0 +1,114 @@
+[
+	{
+		"id": "poi_hr_1-1",
+		"name": "HR教室:1-1",
+		"categoryId": "classroom",
+		"nodeId": "node_la_f1_hr_1-1",
+		"svgId": "hr_1-1",
+		"description": ""
+	},
+	{
+		"id": "poi_hr_1-2",
+		"name": "HR教室:1-2",
+		"categoryId": "classroom",
+		"nodeId": "node_la_f1_hr_1-2",
+		"svgId": "hr_1-2",
+		"description": ""
+	},
+	{
+		"id": "poi_locker-1",
+		"name": "ロッカー室:1年",
+		"categoryId": "locker",
+		"nodeId": "node_la_f1_locker-1",
+		"svgId": "locker-1",
+		"description": ""
+	},
+	{
+		"id": "poi_hr_1-3",
+		"name": "HR教室:1-3",
+		"categoryId": "classroom",
+		"nodeId": "node_la_f1_hr_1-3",
+		"svgId": "hr_1-3",
+		"description": ""
+	},
+	{
+		"id": "poi_hr_1-4",
+		"name": "HR教室:1-4",
+		"categoryId": "classroom",
+		"nodeId": "node_la_f1_hr_1-4",
+		"svgId": "hr_1-4",
+		"description": ""
+	},
+	{
+		"id": "poi_stg_la-f1_east",
+		"name": "教養棟1階東側倉庫",
+		"categoryId": "storage",
+		"nodeId": "node_la_f1_stg_east",
+		"svgId": "stg_la_f1_east",
+		"description": ""
+	},
+	{
+		"id": "poi_stg_la-f1_west",
+		"name": "教養棟1階西側倉庫",
+		"categoryId": "storage",
+		"nodeId": "node_la_f1_stg_west",
+		"svgId": "stg_la_f1_west",
+		"description": ""
+	},
+	{
+		"id": "poi_wc-mens_la-f1",
+		"name": "教養棟1階男性用トイレ",
+		"categoryId": "toilet",
+		"nodeId": "node_la_f1_wc-mens",
+		"svgId": "wc-mens_la_f1",
+		"description": ""
+	},
+	{
+		"id": "poi_wc-womens_la-f1",
+		"name": "教養棟1階女性用トイレ",
+		"categoryId": "toilet",
+		"nodeId": "node_la_f1_wc-womens",
+		"svgId": "wc-womens_la_f1",
+		"description": ""
+	},
+	{
+		"id": "poi_lr-chem",
+		"name": "化学講義室",
+		"categoryId": "classroom",
+		"nodeId": "node_la_f1_lr-chem",
+		"svgId": "lr-chem",
+		"description": ""
+	},
+	{
+		"id": "poi_po-chem",
+		"name": "化学研究室",
+		"categoryId": "office",
+		"nodeId": "node_la_f1_po-chem",
+		"svgId": "po-chem",
+		"description": "北野先生,吉川先生"
+	},
+	{
+		"id": "poi_lab-chem",
+		"name": "化学実験室",
+		"categoryId": "lab",
+		"nodeId": "node_la_f1_lab-chem",
+		"svgId": "lab-chem",
+		"description": ""
+	},
+	{
+		"id": "poi_or-1",
+		"name": "選択教室Ⅰ",
+		"categoryId": "classroom",
+		"nodeId": "node_la_f1_or",
+		"svgId": "la_or-1",
+		"description": ""
+	},
+	{
+		"id": "poi_or-2",
+		"name": "選択教室Ⅱ",
+		"categoryId": "classroom",
+		"nodeId": "node_la_f1_or",
+		"svgId": "la_or-2",
+		"description": ""
+	}
+]

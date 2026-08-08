@@ -1,0 +1,464 @@
+[
+	{
+		"id": "node_la_f1_entrance",
+		"floor": 1,
+		"x": 581,
+		"y": 553
+	},
+	{
+		"id": "node_la_f1_cnr_entrance",
+		"floor": 1,
+		"x": 558.5,
+		"y": 553
+	},
+	{
+		"id": "node_la_f1_hr_1-1",
+		"floor": 1,
+		"x": 531,
+		"y": 553
+	},
+	{
+		"id": "node_la_f1_hr_1-2",
+		"floor": 1,
+		"x": 497.5,
+		"y": 553
+	},
+	{
+		"id": "node_la_f1_locker-1",
+		"floor": 1,
+		"x": 464.5,
+		"y": 553
+	},
+	{
+		"id": "node_la_f1_hr_1-3",
+		"floor": 1,
+		"x": 431.5,
+		"y": 1147
+	},
+	{
+		"id": "node_la_f1_hr_1-4",
+		"floor": 1,
+		"x": 398.5,
+		"y": 553
+	},
+	{
+		"id": "node_la_f1_cnr_1-4",
+		"floor": 1,
+		"x": 404,
+		"y": 553
+	},
+	{
+		"id": "node_la_f1_cnr_ee_sw",
+		"floor": 1,
+		"x": 404,
+		"y": 562.5
+	},
+	{
+		"id": "node_la_f1_ee_sw",
+		"floor": 1,
+		"x": 398,
+		"y": 562.5
+	},
+	{
+		"id": "node_la_f1_wc-womens",
+		"floor": 1,
+		"x": 404,
+		"y": 589
+	},
+	{
+		"id": "node_la_f1_stg_west",
+		"floor": 1,
+		"x": 404,
+		"y": 597.5
+	},
+	{
+		"id": "node_la_f1_stair_west",
+		"floor": 1,
+		"x": 404,
+		"y": 612.5
+	},
+	{
+		"id": "node_la_f1_cnr_ee_nw",
+		"floor": 1,
+		"x": 404,
+		"y": 623
+	},
+	{
+		"id": "node_la_f1_ee_nw",
+		"floor": 1,
+		"x": 398.5,
+		"y": 623
+	},
+	{
+		"id": "node_la_f1_cnr_or2",
+		"floor": 1,
+		"x": 404,
+		"y": 632.5
+	},
+	{
+		"id": "node_la_f1_or",
+		"floor": 1,
+		"x": 419,
+		"y": 632.5
+	},
+	{
+		"id": "node_la_f1_stair_east",
+		"floor": 1,
+		"x": 558.5,
+		"y": 573
+	},
+	{
+		"id": "node_la_f1_stg_east",
+		"floor": 1,
+		"x": 558.5,
+		"y": 589
+	},
+	{
+		"id": "node_la_f1_wc-mens",
+		"floor": 1,
+		"x": 558.5,
+		"y": 597.5
+	},
+	{
+		"id": "node_la_f1_cnr_ee_ne",
+		"floor": 1,
+		"x": 558.5,
+		"y": 623
+	},
+	{
+		"id": "node_la_f1_ee_ne",
+		"floor": 1,
+		"x": 581,
+		"y": 623
+	},
+	{
+		"id": "node_la_f1_cnr_lr-chem",
+		"floor": 1,
+		"x": 558.5,
+		"y": 632.5
+	},
+	{
+		"id": "node_la_f1_lr-chem",
+		"floor": 1,
+		"x": 545.5,
+		"y": 632.5
+	},
+	{
+		"id": "node_la_f1_po-chem",
+		"floor": 1,
+		"x": 525.5,
+		"y": 632.5
+	},
+	{
+		"id": "node_la_f1_lab-chem",
+		"floor": 1,
+		"x": 499.5,
+		"y": 632.5
+	},
+	{
+		"id": "node_la_f2_cnr_locker-3",
+		"floor": 2,
+		"x": 558.5,
+		"y": 553
+	},
+	{
+		"id": "node_la_f2_locker-3",
+		"floor": 2,
+		"x": 567.5,
+		"y": 553
+	},
+	{
+		"id": "node_la_f2_hr_2m",
+		"floor": 2,
+		"x": 531,
+		"y": 553
+	},
+	{
+		"id": "node_la_f2_ee_south",
+		"floor": 2,
+		"x": 581,
+		"y": 563
+	},
+	{
+		"id": "node_la_f2_cnr_ee_south",
+		"floor": 2,
+		"x": 558.5,
+		"y": 563
+	},
+	{
+		"id": "node_la_f2_hr_2d",
+		"floor": 2,
+		"x": 497.5,
+		"y": 553
+	},
+	{
+		"id": "node_la_f2_locker-2",
+		"floor": 2,
+		"x": 465,
+		"y": 553
+	},
+	{
+		"id": "node_la_f2_hr_2e",
+		"floor": 2,
+		"x": 431,
+		"y": 553
+	},
+	{
+		"id": "node_la_f2_hr_2i",
+		"floor": 2,
+		"x": 399,
+		"y": 553
+	},
+	{
+		"id": "node_la_f2_cnr_hr_2i",
+		"floor": 2,
+		"x": 404,
+		"y": 553
+	},
+	{
+		"id": "node_la_f2_sa-balcony",
+		"floor": 2,
+		"x": 404,
+		"y": 563
+	},
+	{
+		"id": "node_la_f2_wc-mens",
+		"floor": 2,
+		"x": 404,
+		"y": 589
+	},
+	{
+		"id": "node_la_f2_stair_west",
+		"floor": 2,
+		"x": 404,
+		"y": 605
+	},
+	{
+		"id": "node_la_f2_stg_west",
+		"floor": 2,
+		"x": 404,
+		"y": 622.5
+	},
+	{
+		"id": "node_la_f2_cnr_art-room",
+		"floor": 2,
+		"x": 404,
+		"y": 632.5
+	},
+	{
+		"id": "node_la_f2_art-room",
+		"floor": 2,
+		"x": 427.5,
+		"y": 632.5
+	},
+	{
+		"id": "node_la_f2_to-aet",
+		"floor": 2,
+		"x": 439.5,
+		"y": 632.5
+	},
+	{
+		"id": "node_la_f2_po-en",
+		"floor": 2,
+		"x": 466.5,
+		"y": 632.5
+	},
+	{
+		"id": "node_la_f2_pr-en",
+		"floor": 2,
+		"x": 498.5,
+		"y": 632.5
+	},
+	{
+		"id": "node_la_f2_lang-lab",
+		"floor": 2,
+		"x": 543,
+		"y": 632.5
+	},
+	{
+		"id": "node_la_f2_cnr_lang-lab",
+		"floor": 2,
+		"x": 558.5,
+		"y": 632.5
+	},
+	{
+		"id": "node_la_f2_cnr_ee_north",
+		"floor": 2,
+		"x": 558.5,
+		"y": 622.5
+	},
+	{
+		"id": "node_la_f2_to-pt",
+		"floor": 2,
+		"x": 572,
+		"y": 622.5
+	},
+	{
+		"id": "node_la_f2_ee-north",
+		"floor": 2,
+		"x": 581,
+		"y": 622.5
+	},
+	{
+		"id": "node_la_f2_wc-womens",
+		"floor": 2,
+		"x": 558.5,
+		"y": 597
+	},
+	{
+		"id": "node_la_f2_stair_east",
+		"floor": 2,
+		"x": 558.5,
+		"y": 581
+	},
+	{
+		"id": "node_la_f3_stair_east",
+		"floor": 3,
+		"x": 558.5,
+		"y": 589
+	},
+	{
+		"id": "node_la_f3_cnr_ur",
+		"floor": 3,
+		"x": 558.5,
+		"y": 553
+	},
+	{
+		"id": "node_la_f3_balcony_se",
+		"floor": 3,
+		"x": 558.5,
+		"y": 563
+	},
+	{
+		"id": "node_la_f3_ur",
+		"floor": 3,
+		"x": 565.5,
+		"y": 553
+	},
+	{
+		"id": "node_la_f3_hr_3e",
+		"floor": 3,
+		"x": 496,
+		"y": 553
+	},
+	{
+		"id": "node_la_f3_hr_3d",
+		"floor": 3,
+		"x": 531,
+		"y": 553
+	},
+	{
+		"id": "node_la_f3_hr_3i",
+		"floor": 3,
+		"x": 465,
+		"y": 553
+	},
+	{
+		"id": "node_la_f3_spare",
+		"floor": 3,
+		"x": 439,
+		"y": 553
+	},
+	{
+		"id": "node_la_f3_cnr_special",
+		"floor": 3,
+		"x": 403,
+		"y": 553
+	},
+	{
+		"id": "node_la_f3_special",
+		"floor": 3,
+		"x": 390,
+		"y": 553
+	},
+	{
+		"id": "node_la_f3_balcony_sw",
+		"floor": 3,
+		"x": 403,
+		"y": 563
+	},
+	{
+		"id": "node_la_f3_wc-womens",
+		"floor": 3,
+		"x": 403,
+		"y": 589
+	},
+	{
+		"id": "node_la_f3_stair_west",
+		"floor": 3,
+		"x": 403,
+		"y": 612
+	},
+	{
+		"id": "node_la_f3_balcony_nw",
+		"floor": 3,
+		"x": 403,
+		"y": 622.5
+	},
+	{
+		"id": "node_la_f3_cnr_lr-phys",
+		"floor": 3,
+		"x": 403,
+		"y": 632.5
+	},
+	{
+		"id": "node_la_f3_lr-phys",
+		"floor": 3,
+		"x": 417.5,
+		"y": 632.5
+	},
+	{
+		"id": "node_la_f3_po-phys-1",
+		"floor": 3,
+		"x": 434.5,
+		"y": 632.5
+	},
+	{
+		"id": "node_la_f3_po-phys-2",
+		"floor": 3,
+		"x": 460.5,
+		"y": 632.5
+	},
+	{
+		"id": "node_la_f3_lab-phys",
+		"floor": 3,
+		"x": 471,
+		"y": 632.5
+	},
+	{
+		"id": "node_la_f3_wc-mens",
+		"floor": 3,
+		"x": 558.5,
+		"y": 596.5
+	},
+	{
+		"id": "node_la_f3_balcony_ne",
+		"floor": 3,
+		"x": 558.5,
+		"y": 623.5
+	},
+	{
+		"id": "node_la_f3_cnr_lab-a-phys",
+		"floor": 3,
+		"x": 558.5,
+		"y": 632.5
+	},
+	{
+		"id": "node_la_f3_stg_east",
+		"floor": 3,
+		"x": 567.5,
+		"y": 632.5
+	},
+	{
+		"id": "node_la_f3_lab-a-phys",
+		"floor": 3,
+		"x": 539.5,
+		"y": 632.5
+	},
+	{
+		"id": "node_la_f3_pr-a-phys",
+		"floor": 3,
+		"x": 533,
+		"y": 632.5
+	}
+]

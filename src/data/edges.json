@@ -1,0 +1,372 @@
+[
+	{
+		"fromNode": "node_la_f1_entrance",
+		"toNode": "node_la_f1_cnr_entrance",
+		"isStairs": false
+	},
+	{
+		"fromNode": "node_la_f1_cnr_entrance",
+		"toNode": "node_la_f1_hr_1-1",
+		"isStairs": false
+	},
+	{
+		"fromNode": "node_la_f1_hr_1-1",
+		"toNode": "node_la_f1_hr_1-2",
+		"isStairs": false
+	},
+	{
+		"fromNode": "node_la_f1_hr_1-2",
+		"toNode": "node_la_f1_locker-1",
+		"isStairs": false
+	},
+	{
+		"fromNode": "node_la_f1_locker-1",
+		"toNode": "node_la_f1_hr_1-3",
+		"isStairs": false
+	},
+	{
+		"fromNode": "node_la_f1_hr_1-3",
+		"toNode": "node_la_f1_cnr_1-4",
+		"isStairs": false
+	},
+	{
+		"fromNode": "node_la_f1_cnr_1-4",
+		"toNode": "node_la_f1_hr_1-4",
+		"isStairs": false
+	},
+	{
+		"fromNode": "node_la_f1_cnr_1-4",
+		"toNode": "node_la_f1_cnr_ee_sw",
+		"isStairs": false
+	},
+	{
+		"fromNode": "node_la_f1_cnr_ee_sw",
+		"toNode": "node_la_f1_ee_sw",
+		"isStairs": false
+	},
+	{
+		"fromNode": "node_la_f1_cnr_ee_sw",
+		"toNode": "node_la_f1_wc-womens",
+		"isStairs": false
+	},
+	{
+		"fromNode": "node_la_f1_wc-womens",
+		"toNode": "node_la_f1_stg_west",
+		"isStairs": false
+	},
+	{
+		"fromNode": "node_la_f1_stg_west",
+		"toNode": "node_la_f1_stair_west",
+		"isStairs": false
+	},
+	{
+		"fromNode": "node_la_f1_stair_west",
+		"toNode": "node_la_f1_cnr_ee_nw",
+		"isStairs": false
+	},
+	{
+		"fromNode": "node_la_f1_cnr_ee_nw",
+		"toNode": "node_la_f1_cnr_or2",
+		"isStairs": false
+	},
+	{
+		"fromNode": "node_la_f1_cnr_or2",
+		"toNode": "node_la_f1_or",
+		"isStairs": false
+	},
+	{
+		"fromNode": "node_la_f1_cnr_entrance",
+		"toNode": "node_la_f1_stair_east",
+		"isStairs": false
+	},
+	{
+		"fromNode": "node_la_f1_stair_east",
+		"toNode": "node_la_f1_stg_east",
+		"isStairs": false
+	},
+	{
+		"fromNode": "node_la_f1_stg_east",
+		"toNode": "node_la_f1_wc-mens",
+		"isStairs": false
+	},
+	{
+		"fromNode": "node_la_f1_wc-mens",
+		"toNode": "node_la_f1_cnr_ee_ne",
+		"isStairs": false
+	},
+	{
+		"fromNode": "node_la_f1_cnr_ee_ne",
+		"toNode": "node_la_f1_ee_ne",
+		"isStairs": false
+	},
+	{
+		"fromNode": "node_la_f1_cnr_ee_ne",
+		"toNode": "node_la_f1_cnr_lr-chem",
+		"isStairs": false
+	},
+	{
+		"fromNode": "node_la_f1_cnr_lr-chem",
+		"toNode": "node_la_f1_lr-chem",
+		"isStairs": false
+	},
+	{
+		"fromNode": "node_la_f1_lr-chem",
+		"toNode": "node_la_f1_po-chem",
+		"isStairs": false
+	},
+	{
+		"fromNode": "node_la_f1_po-chem",
+		"toNode": "node_la_f1_lab-chem",
+		"isStairs": false
+	},
+	{
+		"fromNode": "node_la_f2_ee_south",
+		"toNode": "node_la_f2_cnr_ee_south",
+		"isStairs": false
+	},
+	{
+		"fromNode": "node_la_f2_cnr_ee_south",
+		"toNode": "node_la_f2_cnr_locker-3",
+		"isStairs": false
+	},
+	{
+		"fromNode": "node_la_f2_cnr_locker-3",
+		"toNode": "node_la_f2_locker-3",
+		"isStairs": false
+	},
+	{
+		"fromNode": "node_la_f2_cnr_locker-3",
+		"toNode": "node_la_f2_hr_2m",
+		"isStairs": false
+	},
+	{
+		"fromNode": "node_la_f2_hr_2m",
+		"toNode": "node_la_f2_hr_2d",
+		"isStairs": false
+	},
+	{
+		"fromNode": "node_la_f2_hr_2d",
+		"toNode": "node_la_f2_locker-2",
+		"isStairs": false
+	},
+	{
+		"fromNode": "node_la_f2_locker-2",
+		"toNode": "node_la_f2_hr_2e",
+		"isStairs": false
+	},
+	{
+		"fromNode": "node_la_f2_hr_2e",
+		"toNode": "node_la_f2_cnr_hr_2i",
+		"isStairs": false
+	},
+	{
+		"fromNode": "node_la_f2_cnr_hr_2i",
+		"toNode": "node_la_f2_hr_2i",
+		"isStairs": false
+	},
+	{
+		"fromNode": "node_la_f2_cnr_hr_2i",
+		"toNode": "node_la_f2_sa-balcony",
+		"isStairs": false
+	},
+	{
+		"fromNode": "node_la_f2_sa-balcony",
+		"toNode": "node_la_f2_wc-mens",
+		"isStairs": false
+	},
+	{
+		"fromNode": "node_la_f2_wc-mens",
+		"toNode": "node_la_f2_stair_west",
+		"isStairs": false
+	},
+	{
+		"fromNode": "node_la_f2_stair_west",
+		"toNode": "node_la_f2_stg_west",
+		"isStairs": false
+	},
+	{
+		"fromNode": "node_la_f2_stg_west",
+		"toNode": "node_la_f2_cnr_art-room",
+		"isStairs": false
+	},
+	{
+		"fromNode": "node_la_f2_cnr_art-room",
+		"toNode": "node_la_f2_art-room",
+		"isStairs": false
+	},
+	{
+		"fromNode": "node_la_f2_art-room",
+		"toNode": "node_la_f2_to-aet",
+		"isStairs": false
+	},
+	{
+		"fromNode": "node_la_f2_to-aet",
+		"toNode": "node_la_f2_po-en",
+		"isStairs": false
+	},
+	{
+		"fromNode": "node_la_f2_po-en",
+		"toNode": "node_la_f2_pr-en",
+		"isStairs": false
+	},
+	{
+		"fromNode": "node_la_f2_pr-en",
+		"toNode": "node_la_f2_lang-lab",
+		"isStairs": false
+	},
+	{
+		"fromNode": "node_la_f2_lang-lab",
+		"toNode": "node_la_f2_cnr_lang-lab",
+		"isStairs": false
+	},
+	{
+		"fromNode": "node_la_f2_cnr_lang-lab",
+		"toNode": "node_la_f2_cnr_ee_north",
+		"isStairs": false
+	},
+	{
+		"fromNode": "node_la_f2_cnr_ee_north",
+		"toNode": "node_la_f2_to-pt",
+		"isStairs": false
+	},
+	{
+		"fromNode": "node_la_f2_to-pt",
+		"toNode": "node_la_f2_ee-north",
+		"isStairs": false
+	},
+	{
+		"fromNode": "node_la_f2_cnr_ee_north",
+		"toNode": "node_la_f2_wc-womens",
+		"isStairs": false
+	},
+	{
+		"fromNode": "node_la_f2_wc-womens",
+		"toNode": "node_la_f2_stair_east",
+		"isStairs": false
+	},
+	{
+		"fromNode": "node_la_f2_stair_east",
+		"toNode": "node_la_f2_cnr_ee_south",
+		"isStairs": false
+	},
+	{
+		"fromNode": "node_la_f3_ur",
+		"toNode": "node_la_f3_cnr_ur",
+		"isStairs": false
+	},
+	{
+		"fromNode": "node_la_f3_cnr_ur",
+		"toNode": "node_la_f3_balcony_se",
+		"isStairs": false
+	},
+	{
+		"fromNode": "node_la_f3_balcony_se",
+		"toNode": "node_la_f3_stair_east",
+		"isStairs": false
+	},
+	{
+		"fromNode": "node_la_f3_stair_east",
+		"toNode": "node_la_f3_wc-mens",
+		"isStairs": false
+	},
+	{
+		"fromNode": "node_la_f3_wc-mens",
+		"toNode": "node_la_f3_balcony_ne",
+		"isStairs": false
+	},
+	{
+		"fromNode": "node_la_f3_balcony_ne",
+		"toNode": "node_la_f3_cnr_lab-a-phys",
+		"isStairs": false
+	},
+	{
+		"fromNode": "node_la_f3_cnr_lab-a-phys",
+		"toNode": "node_la_f3_stg_east",
+		"isStairs": false
+	},
+	{
+		"fromNode": "node_la_f3_cnr_lab-a-phys",
+		"toNode": "node_la_f3_lab-a-phys",
+		"isStairs": false
+	},
+	{
+		"fromNode": "node_la_f3_lab-a-phys",
+		"toNode": "node_la_f3_pr-a-phys",
+		"isStairs": false
+	},
+	{
+		"fromNode": "node_la_f3_cnr_ur",
+		"toNode": "node_la_f3_hr_3d",
+		"isStairs": false
+	},
+	{
+		"fromNode": "node_la_f3_hr_3d",
+		"toNode": "node_la_f3_hr_3e",
+		"isStairs": false
+	},
+	{
+		"fromNode": "node_la_f3_hr_3e",
+		"toNode": "node_la_f3_hr_3i",
+		"isStairs": false
+	},
+	{
+		"fromNode": "node_la_f3_hr_3i",
+		"toNode": "node_la_f3_spare",
+		"isStairs": false
+	},
+	{
+		"fromNode": "node_la_f3_spare",
+		"toNode": "node_la_f3_cnr_special",
+		"isStairs": false
+	},
+	{
+		"fromNode": "node_la_f3_cnr_special",
+		"toNode": "node_la_f3_special",
+		"isStairs": false
+	},
+	{
+		"fromNode": "node_la_f3_cnr_special",
+		"toNode": "node_la_f3_balcony_sw",
+		"isStairs": false
+	},
+	{
+		"fromNode": "node_la_f3_balcony_sw",
+		"toNode": "node_la_f3_wc-womens",
+		"isStairs": false
+	},
+	{
+		"fromNode": "node_la_f3_wc-womens",
+		"toNode": "node_la_f3_stair_west",
+		"isStairs": false
+	},
+	{
+		"fromNode": "node_la_f3_stair_west",
+		"toNode": "node_la_f3_balcony_nw",
+		"isStairs": false
+	},
+	{
+		"fromNode": "node_la_f3_balcony_nw",
+		"toNode": "node_la_f3_cnr_lr-phys",
+		"isStairs": false
+	},
+	{
+		"fromNode": "node_la_f3_cnr_lr-phys",
+		"toNode": "node_la_f3_lr-phys",
+		"isStairs": false
+	},
+	{
+		"fromNode": "node_la_f3_lr-phys",
+		"toNode": "node_la_f3_po-phys-1",
+		"isStairs": false
+	},
+	{
+		"fromNode": "node_la_f3_po-phys-1",
+		"toNode": "node_la_f3_po-phys-2",
+		"isStairs": false
+	},
+	{
+		"fromNode": "node_la_f3_po-phys-2",
+		"toNode": "node_la_f3_lab-phys",
+		"isStairs": false
+	}
+]

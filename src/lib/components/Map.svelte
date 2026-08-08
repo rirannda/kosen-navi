@@ -108,6 +108,8 @@
 				marker.addTo(map);
 				marker = L.marker([770.5, 921]);
 				marker.addTo(map);
+				marker = L.marker([553, 581]);
+				marker.addTo(map);
 
 				laBldgFloorLayers['F1'] = laBldgF1Layer;
 				laBldgFloorLayers['F2'] = laBldgF2Layer;
