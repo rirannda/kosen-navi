@@ -2,6 +2,8 @@
 	import { onMount } from 'svelte';
 	import 'leaflet/dist/leaflet.css';
 	import type * as LType from 'leaflet';
+	import { nodes } from '../../../src/data/nodes';
+	import { pois } from '../../../src/data/pois';
 
 	let mapContainer: HTMLElement;
 	let map: LType.Map;
@@ -47,6 +49,39 @@
 		}
 	}
 
+	/*
+	=======
+	移動関数
+	=======
+	*/
+
+	// 座標を指定された地点へ移動する
+	function focusOnLocation(x: number, y: number, zoom: number = 3) {
+		if (!map) {
+			console.error('マップが初期化されていません');
+			return;
+		}
+
+		map.flyTo([y, x], zoom, { duration: 1.0 });
+	}
+
+	// POIのidから目的地を探し、その座標へ移動する
+	export function focusOnPoiId(targetPoiId: string) {
+		const targetPoi = pois.find((poi) => poi.id === targetPoiId);
+		if (!targetPoi) {
+			console.error(`エラー: ${targetPoiId} という目的地が見つかりません`);
+			return;
+		}
+
+		const targetNode = nodes.find((node) => node.id === targetPoi.nodeId);
+		if (!targetNode) {
+			console.error(`エラー: ノードID ${targetPoi.nodeId} の座標データが見つかりません`);
+			return;
+		}
+
+		focusOnLocation(targetNode.x, targetNode.y, 2);
+	}
+
 	onMount(() => {
 		const initMap = async () => {
 			const L = await import('leaflet');
@@ -73,7 +108,7 @@
 				[864, 627],
 				[770.5, 921]
 			]);
-			const SHOW_UI_ZOOM_THRESHOLD = 1;
+			const SHOW_UI_ZOOM_THRESHOLD = 0;
 
 			try {
 				// svgを並列読み込み
@@ -89,8 +124,8 @@
 				] = await Promise.all([
 					loadSvgOverlay('/maps/master.svg', bounds, L),
 					loadSvgOverlay('/maps/la-bldg_F1.svg', bounds, L),
-					loadSvgOverlay('/maps/la-bldg_F2.svg', bounds, L), // placeholder
-					loadSvgOverlay('/maps/la-bldg_F3.svg', bounds, L), // placeholder
+					loadSvgOverlay('/maps/la-bldg_F2.svg', bounds, L),
+					loadSvgOverlay('/maps/la-bldg_F3.svg', bounds, L),
 					loadSvgOverlay('/maps/ss-bldg_1_F1.svg', bounds, L),
 					loadSvgOverlay('/maps/ss-bldg_1_F2.svg', bounds, L),
 					loadSvgOverlay('/maps/ss-bldg_1_F3.svg', bounds, L),
@@ -100,16 +135,16 @@
 				masterLayer.addTo(map);
 
 				// 位置確認用マーカー
-				let marker = L.marker([864, 627]);
-				marker.addTo(map);
-				marker = L.marker([864, 921]);
-				marker.addTo(map);
-				marker = L.marker([770.5, 627]);
-				marker.addTo(map);
-				marker = L.marker([770.5, 921]);
-				marker.addTo(map);
-				marker = L.marker([553, 581]);
-				marker.addTo(map);
+				// let marker = L.marker([864, 627]);
+				// marker.addTo(map);
+				// marker = L.marker([864, 921]);
+				// marker.addTo(map);
+				// marker = L.marker([770.5, 627]);
+				// marker.addTo(map);
+				// marker = L.marker([770.5, 921]);
+				// marker.addTo(map);
+				// marker = L.marker([553, 581]);
+				// marker.addTo(map);
 
 				laBldgFloorLayers['F1'] = laBldgF1Layer;
 				laBldgFloorLayers['F2'] = laBldgF2Layer;
@@ -226,8 +261,8 @@
 
 	.custom-control-panel {
 		position: absolute;
-		top: 20px;
-		right: 20px;
+		bottom: 20px;
+		left: 20px;
 		z-index: 1000;
 		background: rgba(255, 255, 255, 0.95);
 		padding: 16px;
@@ -251,7 +286,7 @@
 	}
 
 	.floor-buttons button {
-		padding: 8px 24px;
+		padding: 8px 18px;
 		border: 1px solid #ccc;
 		background: white;
 		border-radius: 6px;

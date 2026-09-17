@@ -26,3 +26,5 @@ vite.config.ts.timestamp-*
 .direnv
 
 tmp
+
+AGENTS.md
