@@ -1,4 +1,4 @@
-import { MapEdge, MapNode, RawMapEdge } from './types';
+import type { MapEdge, MapNode, RawMapEdge } from './types';
 
 export function buildGraph(nodes: MapNode[], rawEdges: RawMapEdge[]) {
 	const nodeMap = new Map(nodes.map((node) => [node.id, node]));

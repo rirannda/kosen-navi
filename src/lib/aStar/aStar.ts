@@ -1,48 +1,92 @@
-import { MapEdge, MapNode } from './types';
+import type { MapEdge, MapNode } from './types';
 
+type AdjacencyList = Map<string, { to: string; cost: number }[]>;
+
+/**
+ * ノードとエッジから双方向の隣接リストを構築
+ */
+function buildAdjacencyList(nodes: MapNode[], edges: MapEdge[]): AdjacencyList {
+	const adjacency: AdjacencyList = new Map();
+
+	for (const node of nodes) {
+		adjacency.set(node.id, []);
+	}
+
+	for (const edge of edges) {
+		adjacency.get(edge.fromNode)?.push({ to: edge.toNode, cost: edge.weight });
+		adjacency.get(edge.toNode)?.push({ to: edge.fromNode, cost: edge.weight });
+	}
+
+	return adjacency;
+}
+
+/**
+ * 2ノード間のユークリッド距離（直線距離）を計算
+ */
+function calculateEuclideanDistance(a: MapNode, b: MapNode): number {
+	return Math.hypot(a.x - b.x, a.y - b.y);
+}
+
+/**
+ * openSetの中で最もfScoreが低いノードIDを探す
+ */
+function findLowestScoreNode(openSet: Set<string>, fScoreMap: Map<string, number>): string | null {
+	let lowestNode: string | null = null;
+	let lowestScore = Infinity;
+
+	for (const id of openSet) {
+		const score = fScoreMap.get(id) ?? Infinity;
+		if (score < lowestScore) {
+			lowestScore = score;
+			lowestNode = id;
+		}
+	}
+
+	return lowestNode;
+}
+
+/**
+ * cameFromマップを元にゴールからスタートまでの経路を再構築
+ */
+function reconstructPath(cameFrom: Map<string, string>, currentId: string): string[] {
+	const path = [currentId];
+	let current = currentId;
+
+	while (cameFrom.has(current)) {
+		current = cameFrom.get(current)!;
+		path.unshift(current);
+	}
+
+	return path;
+}
+
+/**
+ * A* 探索アルゴリズム メイン関数
+ */
 export function aStar(
-	graph: {
-		nodes: MapNode[];
-		edges: MapEdge[];
-	},
+	graph: { nodes: MapNode[]; edges: MapEdge[] },
 	startId: string,
 	goalId: string
 ): string[] | null {
 	const nodeMap = new Map(graph.nodes.map((node) => [node.id, node]));
 
-	const adjacency = new Map<string, { to: string; cost: number }[]>();
+	// ノードの存在確認
+	const startNode = nodeMap.get(startId);
+	const goalNode = nodeMap.get(goalId);
+	if (!startNode || !goalNode) return null;
 
-	// 隣接リスト初期化
-	for (const node of graph.nodes) {
-		adjacency.set(node.id, []);
-	}
+	const adjacency = buildAdjacencyList(graph.nodes, graph.edges);
 
-	// 双方向グラフ
-	for (const edge of graph.edges) {
-		adjacency.get(edge.fromNode)!.push({
-			to: edge.toNode,
-			cost: edge.weight
-		});
-
-		adjacency.get(edge.toNode)!.push({
-			to: edge.fromNode,
-			cost: edge.weight
-		});
-	}
-
-	const heuristic = (a: string, b: string) => {
-		const na = nodeMap.get(a)!;
-		const nb = nodeMap.get(b)!;
-
-		return Math.hypot(na.x - nb.x, na.y - nb.y);
+	const heuristic = (fromId: string, toId: string): number => {
+		const fromNode = nodeMap.get(fromId);
+		const toNode = nodeMap.get(toId);
+		if (!fromNode || !toNode) return Infinity;
+		return calculateEuclideanDistance(fromNode, toNode);
 	};
 
 	const open = new Set([startId]);
-
 	const cameFrom = new Map<string, string>();
-
 	const gScore = new Map<string, number>();
-
 	const fScore = new Map<string, number>();
 
 	for (const node of graph.nodes) {
@@ -51,46 +95,26 @@ export function aStar(
 	}
 
 	gScore.set(startId, 0);
-
 	fScore.set(startId, heuristic(startId, goalId));
 
 	while (open.size > 0) {
-		let current = '';
-
-		let best = Infinity;
-
-		for (const id of open) {
-			const score = fScore.get(id)!;
-
-			if (score < best) {
-				best = score;
-				current = id;
-			}
-		}
+		const current = findLowestScoreNode(open, fScore);
+		if (!current) break;
 
 		if (current === goalId) {
-			const path = [current];
-
-			while (cameFrom.has(current)) {
-				current = cameFrom.get(current)!;
-				path.unshift(current);
-			}
-
-			return path;
+			return reconstructPath(cameFrom, current);
 		}
 
 		open.delete(current);
 
-		for (const next of adjacency.get(current)!) {
-			const tentative = gScore.get(current)! + next.cost;
+		const neighbors = adjacency.get(current) ?? [];
+		for (const next of neighbors) {
+			const tentativeGScore = (gScore.get(current) ?? Infinity) + next.cost;
 
-			if (tentative < gScore.get(next.to)!) {
+			if (tentativeGScore < (gScore.get(next.to) ?? Infinity)) {
 				cameFrom.set(next.to, current);
-
-				gScore.set(next.to, tentative);
-
-				fScore.set(next.to, tentative + heuristic(next.to, goalId));
-
+				gScore.set(next.to, tentativeGScore);
+				fScore.set(next.to, tentativeGScore + heuristic(next.to, goalId));
 				open.add(next.to);
 			}
 		}
