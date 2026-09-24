@@ -1,4 +1,4 @@
-import { MapEdge, MapNode } from './types';
+import type { MapEdge, MapNode } from './types';
 
 type AdjacencyList = Map<string, { to: string; cost: number }[]>;
 
