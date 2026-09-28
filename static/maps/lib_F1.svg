@@ -1,0 +1,24 @@
+<svg width="1400" height="1700" viewBox="0 0 1400 1700" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="lib_F1">
+<path id="lib_f1_flame" d="M814 1020H921V1148H873.5V1170.5H857.5V1155H814V1020Z" stroke="black"/>
+<path id="wc-mens_lib_f1" d="M814 1020H826V1047H814V1020Z" stroke="black"/>
+<path id="wc-womens_lib_f1" d="M826 1020H838V1047H826V1020Z" stroke="black"/>
+<path id="stg_lib_f1" d="M838 1020H850V1047H838V1020Z" stroke="black"/>
+<g id="stair_lib_f1_north">
+<path id="stair_lib_f1_north_flame" d="M838 1029H850V1047H838V1029Z" stroke="black"/>
+<path id="stair_lib_f1_north_lines" d="M838 1032.5H850M838 1036H850M838 1040H850M838 1043.5H850" stroke="black" stroke-width="0.5"/>
+</g>
+<path id="library-stacks_lib_f1" d="M850 1020H921V1047H850V1020Z" stroke="black"/>
+<path id="library-office" d="M861.5 1047H921V1074H861.5V1047Z" stroke="black"/>
+<path id="reading-room" d="M826 1070L874 1070L874 1147.5L921 1147.5L921 1047L861.5 1047L861.5 1070Z" stroke="black"/>
+<path id="open-stacks_lib_f1" d="M874 1074H921V1147.5H874V1074Z" stroke="black"/>
+<g id="stair_lib_f1_west">
+<path id="stair_lib_f1_west_flame" d="M814 1047H826V1070H814V1047Z" stroke="black"/>
+<path id="stair_lib_f1_west_lines" d="M814 1053H826M814 1058.5H826M814 1064.5H826" stroke="black" stroke-width="0.5"/>
+</g>
+<g id="stair_lib_f1_south">
+<path id="stair_lib_f1_south_flame" d="M858 1147.5H866V1170.5H858V1147.5Z" stroke="black"/>
+<path id="stair_lib_f1_south_lines" d="M858 1152H866M858 1156.5H866M858 1161.5H866M858 1166H866" stroke="black" stroke-width="0.5"/>
+</g>
+</g>
+</svg>
