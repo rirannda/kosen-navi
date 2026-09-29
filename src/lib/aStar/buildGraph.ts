@@ -1,9 +1,11 @@
 import type { Edge, Node, EnhancedEdge } from '../../data/types.ts';
 
-export function buildGraph(nodes: Node[], rawEdges: Edge[]) {
+export function buildGraph(nodes: Node[], rawEdges: Edge[], stairEdge: Edge[]) {
 	const nodeMap = new Map(nodes.map((node) => [node.id, node]));
 
-	const edges: EnhancedEdge[] = rawEdges.map((edge) => {
+	const allEdges = [...rawEdges, ...stairEdge];
+
+	const edges: EnhancedEdge[] = allEdges.map((edge) => {
 		const from = nodeMap.get(edge.fromNode);
 		const to = nodeMap.get(edge.toNode);
 
