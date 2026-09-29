@@ -203,39 +203,6 @@
 		focusOnLocation(targetNode.x, targetNode.y, 2);
 	}
 
-	/*
-	=======
-	移動関数
-	=======
-	*/
-
-	// 座標を指定された地点へ移動する
-	function focusOnLocation(x: number, y: number, zoom: number = 3) {
-		if (!map) {
-			console.error('マップが初期化されていません');
-			return;
-		}
-
-		map.flyTo([y, x], zoom, { duration: 1.0 });
-	}
-
-	// POIのidから目的地を探し、その座標へ移動する
-	export function focusOnPoiId(targetPoiId: string) {
-		const targetPoi = pois.find((poi) => poi.id === targetPoiId);
-		if (!targetPoi) {
-			console.error(`エラー: ${targetPoiId} という目的地が見つかりません`);
-			return;
-		}
-
-		const targetNode = nodes.find((node) => node.id === targetPoi.nodeId);
-		if (!targetNode) {
-			console.error(`エラー: ノードID ${targetPoi.nodeId} の座標データが見つかりません`);
-			return;
-		}
-
-		focusOnLocation(targetNode.x, targetNode.y, 2);
-	}
-
 	onMount(() => {
 		const initMap = async () => {
 			const L = await import('leaflet');
