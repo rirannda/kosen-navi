@@ -1,0 +1,13 @@
+<svg width="1400" height="1700" viewBox="0 0 1400 1700" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="mah_F1">
+<path id="mah_f1_flame" d="M985 1341.5H1115L1120 1346.5V1367.5H1115V1430.5H985V1367H980V1346.5L985 1341.5Z" stroke="black"/>
+<path id="equipment-room_mah_f1-1" d="M984.5 1346L1014 1346L1014 1370L984.5 1370L984.5 1349L988.5 1346Z" stroke="black"/>
+<path id="wc_mah_f1" d="M1014 1346H1022.5V1362H1014V1346Z" stroke="black"/>
+<path id="washroom_mah_f1" d="M1022.5 1346L1039.5 1346L1039.5 1358L1035.5 1362L1022.5 1362Z" stroke="black"/>
+<path id="po-pe-nakada" d="M1065 1346H1090V1370H1065V1346Z" stroke="black"/>
+<path id="equipment-room_mah_f1-2" d="M1090 1346L1116 1346L1120 1349.5L1120 1370L1090 1370Z" stroke="black"/>
+<path id="entrance_mah_f1" d="M1014 1362L1035.5 1362L1039.5 1358L1065 1358L1065 1370L1090 1370L1090 1373L1014 1373Z" stroke="black"/>
+<path id="kendo-hall" d="M988.5 1373H1052V1430.5H988.5V1373Z" stroke="black"/>
+<path id="judo-hall" d="M1052 1373H1115.5V1430.5H1052V1373Z" stroke="black"/>
+</g>
+</svg>

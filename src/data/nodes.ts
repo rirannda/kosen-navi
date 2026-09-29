@@ -35,7 +35,7 @@ export const nodes: Nodes = [
 		id: 'node_la_f1_hr_1-3',
 		floor: 1,
 		x: 431.5,
-		y: 1147
+		y: 553
 	},
 	{
 		id: 'node_la_f1_hr_1-4',

@@ -1,0 +1,23 @@
+<svg width="1400" height="1700" viewBox="0 0 1400 1700" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="lib_F2">
+<path id="lib_f2_flame" d="M814 1020H921V1148H873.5V1170.5H857.5V1155H814V1020Z" stroke="black"/>
+<path id="wc-mens_lib_f2" d="M814 1020H826V1047H814V1020Z" stroke="black"/>
+<path id="stg_lib_f2" d="M826 1020H850V1047H826V1020Z" stroke="black"/>
+<g id="stair_lib_f2_north">
+<path id="stair_lib_f2_north_flame" d="M834 1027.5H850V1047H834V1027.5Z" stroke="black"/>
+<path id="stair_lib_f2_north_lines" d="M834 1031.5H850M834 1035.5H850M834 1039H850M834 1043H850" stroke="black" stroke-width="0.5"/>
+</g>
+<path id="work-room_lib_f2" d="M850 1020H869V1047H850V1020Z" stroke="black"/>
+<path id="library-stacks_lib_f2" d="M869 1020H921V1058.5H869V1020Z" stroke="black"/>
+<path id="control-room_lib_f2" d="M897 1047H921V1058.5H897V1047Z" stroke="black"/>
+<path id="special-collections-room" d="M826 1074H865.5V1088.5H826V1074Z" stroke="black"/>
+<path id="industrial-technology-materials-room" d="M826 1088.5H865.5V1104H826V1088.5Z" stroke="black"/>
+<path id="seminar-room_lib_f2" d="M826 1104H865.5V1147H826V1104Z" stroke="black"/>
+<path id="audiovisual-hall" d="M873 1058.5L921 1058.5L921 1147L873 1147Z" stroke="black"/>
+<path id="void-lib-f2" d="M826 1124L865.5 1124" stroke="black" stroke-dasharray="4 3"/>
+<g id="stair_lib_f2_south">
+<path id="stair_lib_f2_south_flame" d="M865.5 1147H873V1170.5H865.5V1147Z" stroke="black"/>
+<path id="stair_lib_f2_south_lines" d="M865.5 1151.5H873M865.5 1156.5H873M865.5 1161H873M865.5 1166H873" stroke="black" stroke-width="0.5"/>
+</g>
+</g>
+</svg>
