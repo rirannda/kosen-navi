@@ -154,6 +154,7 @@ edge idはJSON読み込み時に`"fromNode"`と`"toNode"`から生成される�
   - 学務課: `sao`
   - 総務課: `gao`
   - 学主事: `dos`
+  - 主任室: `co`
 - 方角:
   - 東西南北のみならそのまま`east``west``south``north`
   - 北側の西側、南側の東側などのときは`nw`(north-west)や`se`(south-east)と表記

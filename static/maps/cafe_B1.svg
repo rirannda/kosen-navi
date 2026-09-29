@@ -1,0 +1,18 @@
+<svg width="1400" height="1700" viewBox="0 0 1400 1700" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="cafe_B1">
+<path id="cafe_b1_flame" d="M748 1195H833V1277H809.5V1272.5H796.5V1277H748V1195Z" stroke="black"/>
+<path id="corridor_cafe_b1" d="M761.5 1195L833 1195L833 1277L815 1277L815 1264.5L779 1264.5L779 1234L761.5 1234Z" stroke="black"/>
+<path id="stg_cafe_b1-1" d="M797 1195H804V1234H797V1195Z" stroke="black"/>
+<path id="stg_cafe_b1-2" d="M804 1195H811.5V1234H804V1195Z" stroke="black"/>
+<path id="stg_cafe_b1-3" d="M811.5 1195H818.5V1234H811.5V1195Z" stroke="black"/>
+<path id="stg_cafe_b1-4" d="M818.5 1195H826V1234H818.5V1195Z" stroke="black"/>
+<path id="stg_cafe_b1-5" d="M826 1195H833V1234H826V1195Z" stroke="black"/>
+<path id="stg_cafe_b1-6" d="M797 1234H833V1264.5H797V1234Z" stroke="black"/>
+<path id="stg_cafe_b1-7" d="M779 1234H797V1249.5H779V1234Z" stroke="black"/>
+<path id="stg_cafe_b1-8" d="M779 1249.5H797V1264.5H779V1249.5Z" stroke="black"/>
+<g id="stair_cafe_b1_west">
+<path id="stair_cafe_b1_west_flame" d="M748 1217.5H757V1250.5H748V1217.5Z" stroke="black"/>
+<path id="stair_cafe_b1_west_lines" d="M748 1226H757M748 1234H757M748 1242.5H757" stroke="black" stroke-width="0.5"/>
+</g>
+</g>
+</svg>

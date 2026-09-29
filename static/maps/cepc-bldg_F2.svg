@@ -1,0 +1,25 @@
+<svg width="1400" height="1700" viewBox="0 0 1400 1700" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="cepc-bldg_F2">
+<path id="cepc_f2_flame" d="M952 804H1116V833H1109V844H1101.5V873.5H982V888H967V833H952V804Z" stroke="black"/>
+<path id="regional-collaboration-office" d="M967 804H981.5V833.5H967V804Z" stroke="black"/>
+<path id="online-meeting-room_cepc_f2" d="M981.5 804H996.5V833.5H981.5V804Z" stroke="black"/>
+<path id="cai-room" d="M996.5 804H1041.5V833.5H996.5V804Z" stroke="black"/>
+<path id="cad-room" d="M1041.5 804H1101V833.5H1041.5V804Z" stroke="black"/>
+<path id="computer-room-1" d="M981.5 844H996.5V873.5H981.5V844Z" stroke="black"/>
+<path id="computer-room-2" d="M996.5 844H1011.5V858.5H996.5V844Z" stroke="black"/>
+<path id="computer-room-3" d="M996.5 858.5H1011.5V873.5H996.5V858.5Z" stroke="black"/>
+<path id="hpc-room" d="M1011.5 844H1041.5V873.5H1011.5V844Z" stroke="black"/>
+<path id="ip-room" d="M1041.5 844H1086V873.5H1041.5V844Z" stroke="black"/>
+<path id="wc-womens_cepc_f2" d="M967 870H981.5V881H967V870Z" stroke="black"/>
+<path id="wc-mens_cepc_f2" d="M967 881H981.5V888H967V881Z" stroke="black"/>
+<g id="stair_cepc_f2_west">
+<path id="stair_cepc_f2_west_flame" d="M967 847.5H981.5V870H967V847.5Z" stroke="black"/>
+<path id="stair_cepc_f2_west_lines" d="M967 852H981.5M967 856.5H981.5M967 861H981.5M967 865.5H981.5" stroke="black" stroke-width="0.5"/>
+</g>
+<g id="stair_cepc_f2_east">
+<path id="stair_cepc_f2_east_flame" d="M1090 840.5H1097.5V866H1090V840.5Z" stroke="black"/>
+<path id="stair_cepc_f2_east_lines" d="M1090 845.5H1097.5M1090 850.5H1097.5M1090 856H1097.5M1090 861H1097.5" stroke="black" stroke-width="0.5"/>
+</g>
+<path id="void-cepc-f2" d="M952 804L952 833.5L967 833.5" stroke="black" stroke-dasharray="4 3"/>
+</g>
+</svg>

@@ -1,0 +1,11 @@
+<svg width="1400" height="1700" viewBox="0 0 1400 1700" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="staircase_F1">
+<path id="staircase_f1_flame" d="M579 836H627V929.5H579V836Z" stroke="black"/>
+<g id="stair_staircase_f1_north">
+<path id="stair_staircase_f1_north_flame" d="M592 840H601V866H592V840Z" stroke="black"/>
+<path id="stair_staircase_f1_north_lines" d="M592 845H601M592 850.5H601M592 855.5H601M592 861H601" stroke="black" stroke-width="0.5"/>
+</g>
+<path id="stg_staircase_f1" d="M601 840H618.5V866H601V840Z" stroke="black"/>
+<path id="wc-mens_staircase_f1" d="M592 877L609.5 877L609.5 907L605.5 911L596 911L592 907Z" stroke="black"/>
+</g>
+</svg>

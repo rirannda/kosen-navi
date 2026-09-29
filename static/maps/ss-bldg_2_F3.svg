@@ -1,0 +1,33 @@
+<svg width="1400" height="1700" viewBox="0 0 1400 1700" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="ss-bldg_2_F3">
+<path id="ss2_f3_flame" d="M256 836H579V929.5H256V836Z" stroke="black"/>
+<path id="roof-ss2-f3" d="M268 836H338.5V929.5H268V836Z" stroke="black"/>
+<path id="lab-env-material-chem-3-1" d="M338.5 836H443V875.5H338.5V836Z" stroke="black"/>
+<path id="pr-env-material-chem-3-1" d="M443 836H459.5V875.5H443V836Z" stroke="black"/>
+<path id="wc-womens_ss2_f3" d="M459.5 836H475.5V855.5H459.5V836Z" stroke="black"/>
+<path id="stg_ss2_f3_center" d="M467.5 855.5H475.5V875.5H467.5V855.5Z" stroke="black"/>
+<path id="po-c-abizaka" d="M475.5 836H491.5V875.5H475.5V836Z" stroke="black"/>
+<path id="lab-spatial-information" d="M491.5 836H509.5V875.5H491.5V836Z" stroke="black"/>
+<path id="urban-transport-techno-studio" d="M509.5 836H542V875.5H509.5V836Z" stroke="black"/>
+<path id="spare_ss2_f3" d="M542 836H579V875.5H542V836Z" stroke="black"/>
+<path id="po-c-kurahashi" d="M338.5 890H357V929.5H338.5V890Z" stroke="black"/>
+<path id="lab-env-material-chem-3-2" d="M357 890H373V929.5H357V890Z" stroke="black"/>
+<path id="lab-env-material-chem-3-3" d="M373 890H389.5V929.5H373V890Z" stroke="black"/>
+<path id="po-c-spare-1" d="M389.5 890H407.5V929.5H389.5V890Z" stroke="black"/>
+<path id="lab-maintenance-engineering" d="M407.5 890H426V929.5H407.5V890Z" stroke="black"/>
+<path id="po-c-shirayanagi" d="M426 890H443V929.5H426V890Z" stroke="black"/>
+<g id="stair_ss2_f3_center">
+<path id="stair_ss2_f3_center_flame" d="M451 904.5H467.5V929.5H451V904.5Z" stroke="black"/>
+<path id="stair_ss2_f3_center_lines" d="M451 911H467.5M451 917H467.5M451 923.5H467.5" stroke="black" stroke-width="0.5"/>
+</g>
+<path id="changing_ss2_f3" d="M475.5 890H483.5V929.5H475.5V890Z" stroke="black"/>
+<path id="urban-architectural-design-studio" d="M483.5 890H509.5V929.5H483.5V890Z" stroke="black"/>
+<path id="hr_5c" d="M509.5 890H526V929.5H509.5V890Z" stroke="black"/>
+<path id="spare_ss2_f3-2" d="M526 890H542V929.5H526V890Z" stroke="black"/>
+<path id="student-association-council" d="M542 890H579V929.5H542V890Z" stroke="black"/>
+<g id="stair_ss2_f3_west">
+<path id="stair_ss2_f3_west_flame" d="M256 885H268V910H256V885Z" stroke="black"/>
+<path id="stair_ss2_f3_west_lines" d="M256 891.5H268M256 897.5H268M256 904H268" stroke="black" stroke-width="0.5"/>
+</g>
+</g>
+</svg>

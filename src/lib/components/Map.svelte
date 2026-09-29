@@ -2,11 +2,22 @@
 	import { onMount } from 'svelte';
 	import 'leaflet/dist/leaflet.css';
 	import type * as LType from 'leaflet';
+	import { aStar } from '../aStar/aStar';
+	import { buildGraph } from '../aStar/buildGraph';
+	import type { MapNode } from '../aStar/types';
+	import { edges } from '../../data/edges';
+	import { edgeStairs } from '../../data/edge_stair';
 	import { nodes } from '../../../src/data/nodes';
 	import { pois } from '../../../src/data/pois';
 
+	const graph = buildGraph(nodes, [...edges, ...edgeStairs]);
+
 	let mapContainer: HTMLElement;
 	let map: LType.Map;
+	let leaflet: typeof LType | undefined;
+	let pendingRoutePath: string[] | null = null;
+	let routeLayersByFloor: Partial<Record<number, LType.Polyline[]>> = {};
+	let routePointsByFloor: Partial<Record<number, LType.LatLngExpression[]>> = {};
 
 	let showBldgMenu = $state(false);
 	let zoomedBldg = $state<'' | 'la' | 'ss1'>('');
@@ -15,6 +26,114 @@
 	let floorLayers: Record<string, LType.Layer> = {};
 	let laBldgFloorLayers: Record<string, LType.Layer> = {};
 	let ssBldg1FloorLayers: Record<string, LType.Layer> = {};
+
+	function splitRouteByFloor(pathIds: string[]): MapNode[][] {
+		const nodeById = new Map(graph.nodes.map((node) => [node.id, node]));
+		const segments: MapNode[][] = [];
+
+		for (const id of pathIds) {
+			const node = nodeById.get(id);
+			if (!node) throw new Error(`経路上のノードが見つかりません: ${id}`);
+
+			const currentSegment = segments.at(-1);
+			if (!currentSegment || currentSegment[0].floor !== node.floor) {
+				segments.push([node]);
+			} else {
+				currentSegment.push(node);
+			}
+		}
+
+		return segments;
+	}
+
+	function updateVisibleRoute() {
+		if (!map) return;
+
+		for (const layers of Object.values(routeLayersByFloor)) {
+			for (const layer of layers ?? []) layer.remove();
+		}
+
+		const floor = Number(activeFloor.slice(1));
+		for (const layer of routeLayersByFloor[floor] ?? []) {
+			layer.addTo(map).bringToFront();
+		}
+	}
+
+	function fitCurrentFloorRoute() {
+		if (!map || !leaflet) return;
+
+		const floor = Number(activeFloor.slice(1));
+		const points = routePointsByFloor[floor];
+		if (!points?.length) return;
+
+		map.fitBounds(leaflet.latLngBounds(points), {
+			padding: [32, 32],
+			maxZoom: 2
+		});
+	}
+
+	function drawRoute(pathIds: string[]) {
+		if (!map || !leaflet) {
+			pendingRoutePath = [...pathIds];
+			return;
+		}
+
+		clearRoute();
+		if (pathIds.length === 0) return;
+
+		const segments = splitRouteByFloor(pathIds);
+
+		for (const segment of segments) {
+			const floor = segment[0].floor;
+			const points: LType.LatLngExpression[] = segment.map((node) => [node.y, node.x]);
+			const floorPoints = routePointsByFloor[floor] ?? [];
+			floorPoints.push(...points);
+			routePointsByFloor[floor] = floorPoints;
+
+			if (points.length >= 2) {
+				const line = leaflet.polyline(points, {
+					color: '#2563eb',
+					weight: 6,
+					opacity: 0.9,
+					lineCap: 'round',
+					lineJoin: 'round'
+				});
+				const floorLayers = routeLayersByFloor[floor] ?? [];
+				floorLayers.push(line);
+				routeLayersByFloor[floor] = floorLayers;
+			}
+		}
+
+		pendingRoutePath = null;
+		const firstFloor = `F${segments[0][0].floor}` as typeof activeFloor;
+		if (activeFloor === firstFloor) {
+			updateVisibleRoute();
+		} else {
+			switchFloor(zoomedBldg, firstFloor);
+		}
+		fitCurrentFloorRoute();
+	}
+
+	export function clearRoute() {
+		for (const layers of Object.values(routeLayersByFloor)) {
+			for (const layer of layers ?? []) layer.remove();
+		}
+		routeLayersByFloor = {};
+		routePointsByFloor = {};
+		pendingRoutePath = null;
+	}
+
+	export function showRoute(startId: string, goalId: string): string[] | null {
+		const pathIds = aStar(graph, startId, goalId);
+		if (!pathIds) {
+			clearRoute();
+			console.error(`経路が見つかりません: ${startId} -> ${goalId}`);
+			return null;
+		}
+
+		drawRoute(pathIds);
+		return pathIds;
+	}
 
 	const bldgMenuText = {
 		la: { title: '教養棟', floors: 3 },
@@ -47,6 +166,41 @@
 		if (floorLayers[activeFloor]) {
 			floorLayers[activeFloor].addTo(map);
 		}
+
+		updateVisibleRoute();
+	}
+
+	/*
+	=======
+	移動関数
+	=======
+	*/
+
+	// 座標を指定された地点へ移動する
+	function focusOnLocation(x: number, y: number, zoom: number = 3) {
+		if (!map) {
+			console.error('マップが初期化されていません');
+			return;
+		}
+
+		map.flyTo([y, x], zoom, { duration: 1.0 });
+	}
+
+	// POIのidから目的地を探し、その座標へ移動する
+	export function focusOnPoiId(targetPoiId: string) {
+		const targetPoi = pois.find((poi) => poi.id === targetPoiId);
+		if (!targetPoi) {
+			console.error(`エラー: ${targetPoiId} という目的地が見つかりません`);
+			return;
+		}
+
+		const targetNode = nodes.find((node) => node.id === targetPoi.nodeId);
+		if (!targetNode) {
+			console.error(`エラー: ノードID ${targetPoi.nodeId} の座標データが見つかりません`);
+			return;
+		}
+
+		focusOnLocation(targetNode.x, targetNode.y, 2);
 	}
 
 	/*
@@ -85,6 +239,7 @@
 	onMount(() => {
 		const initMap = async () => {
 			const L = await import('leaflet');
+			leaflet = L;
 
 			const bounds: LType.LatLngBoundsExpression = [
 				[0, 0],
@@ -199,6 +354,8 @@
 				map.on('zoomend moveend', updateMapState);
 				map.fitBounds(bounds);
 				updateMapState();
+
+				if (pendingRoutePath) drawRoute(pendingRoutePath);
 			} catch (error) {
 				console.error('マップの初期化エラー:', error);
 			}
@@ -207,7 +364,9 @@
 		initMap();
 
 		return () => {
+			clearRoute();
 			if (map) map.remove();
+			leaflet = undefined;
 		};
 	});
 </script>
