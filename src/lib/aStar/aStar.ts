@@ -1,11 +1,11 @@
-import type { MapEdge, MapNode } from './types';
+import type { EnhancedEdge, Node } from '../../data/types.ts';
 
 type AdjacencyList = Map<string, { to: string; cost: number }[]>;
 
 /**
  * ノードとエッジから双方向の隣接リストを構築
  */
-function buildAdjacencyList(nodes: MapNode[], edges: MapEdge[]): AdjacencyList {
+function buildAdjacencyList(nodes: Node[], edges: EnhancedEdge[]): AdjacencyList {
 	const adjacency: AdjacencyList = new Map();
 
 	for (const node of nodes) {
@@ -23,7 +23,7 @@ function buildAdjacencyList(nodes: MapNode[], edges: MapEdge[]): AdjacencyList {
 /**
  * 2ノード間のユークリッド距離（直線距離）を計算
  */
-function calculateEuclideanDistance(a: MapNode, b: MapNode): number {
+function calculateEuclideanDistance(a: Node, b: Node): number {
 	return Math.hypot(a.x - b.x, a.y - b.y);
 }
 
@@ -64,7 +64,7 @@ function reconstructPath(cameFrom: Map<string, string>, currentId: string): stri
  * A* 探索アルゴリズム メイン関数
  */
 export function aStar(
-	graph: { nodes: MapNode[]; edges: MapEdge[] },
+	graph: { nodes: Node[]; edges: EnhancedEdge[] },
 	startId: string,
 	goalId: string
 ): string[] | null {
