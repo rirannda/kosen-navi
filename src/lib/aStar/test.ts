@@ -1,10 +1,10 @@
-import nodes from './data/nodes.json';
-import rawEdges from './data/edges.json';
-import pois from './data/pois.json';
+import { nodes } from '../../data/nodes.ts';
+import { edges } from '../../data/edges.ts';
+import { pois } from '../../data/pois.ts';
 import { buildGraph } from './buildGraph.ts';
 import { aStar } from './aStar.ts';
 
-const graph = buildGraph(nodes, rawEdges);
+const graph = buildGraph(nodes, edges);
 
 const start = pois.find((p) => p.id === 'poi_hr_1-1');
 if (!start) {
