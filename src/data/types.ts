@@ -13,6 +13,14 @@ export type Node = {
 };
 export type Nodes = Node[];
 
+export type EnhancedEdge = {
+	id: string;
+	fromNode: string;
+	toNode: string;
+	isStairs: boolean;
+	weight: number;
+};
+
 export type Poi = {
 	id: string;
 	name: string;
