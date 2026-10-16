@@ -7,6 +7,7 @@ export type Edges = Edge[];
 
 export type Node = {
 	id: string;
+	buildingId?: string; // 省略時は既存のノードID命名規則から判定
 	floor: number;
 	x: number;
 	y: number;
