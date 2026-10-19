@@ -1,6 +1,10 @@
 export { getRouteDisplay } from './route/routeDisplay';
+export { layoutRouteLabels } from './route/labelLayout';
+export type { LabelBounds, RouteLabel } from './route/labelLayout';
 export type { RouteTransition } from './route/routeDisplay';
 export { highlightColors } from './map/highlightColors';
 export { getNearbyBuildings } from './map/nearbyBuildings';
+export { createConnectedFloorLookup } from './map/connectedFloors';
+export type { ConnectedFloorLookup } from './map/connectedFloors';
 export type { HighlightColor } from './map/highlightColors';
 export type { Poi } from '../data/types';

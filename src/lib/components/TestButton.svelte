@@ -1,5 +1,6 @@
 <script lang="ts">
 	import type { HighlightColor } from '$lib';
+	import { pois } from '../../data/pois';
 	let {
 		focusOnPoi,
 		showRoute,
@@ -11,18 +12,29 @@
 		highlightPoi: (poiId: string, color?: HighlightColor) => void;
 		clearPoiHighlight: () => void;
 	} = $props();
-	function navigate() {
-		showRoute('node_la_f1_hr_1-1', 'node_la_f3_lab-a-phys');
-		highlightPoi('poi_hr_1-1', 'start');
-		highlightPoi('poi_lab-a-phys', 'goal');
-		focusOnPoi('poi_hr_1-1');
+	function navigate(start: string, goal: string) {
+		const startNode = pois.find((poi) => poi.id === start)?.nodeId;
+		const goalNode = pois.find((poi) => poi.id === goal)?.nodeId;
+		if (!startNode || !goalNode) {
+			console.error(`経路の始点または終点が見つかりません: ${start} -> ${goal}`);
+			return;
+		}
+		showRoute(startNode, goalNode);
+		highlightPoi(start, 'start');
+		highlightPoi(goal, 'goal');
+		focusOnPoi(start);
 	}
 </script>
 
 <div class="test-controls">
 	<button type="button" onclick={() => focusOnPoi('poi_lr-chem')}>化学講義室へ移動</button>
 	<button type="button" onclick={() => focusOnPoi('poi_hr_1-1')}>1-1HRへ移動</button>
-	<button type="button" onclick={() => navigate()}> 1-1HRから応用物理実験室への経路を表示 </button>
+	<button type="button" onclick={() => navigate('poi_hr_1-1', 'poi_lab-a-phys')}>
+		1-1HRから応用物理実験室への経路を表示
+	</button>
+	<button type="button" onclick={() => navigate('poi_main-gate', 'poi_student-association-office')}>
+		正門から執行部室への経路を表示
+	</button>
 	<button type="button" onclick={() => highlightPoi('poi_hr_1-1', 'start')}>
 		1-1HRをスタート色でハイライト
 	</button>

@@ -6,8 +6,11 @@
 	import { aStar } from '../aStar/aStar';
 	import { buildGraph } from '../aStar/buildGraph';
 	import { getRouteDisplay } from '../route/routeDisplay';
+	import { layoutRouteLabels } from '../route/labelLayout';
+	import type { LabelBounds } from '../route/labelLayout';
 	import { highlightColors } from '../map/highlightColors';
 	import { getNearbyBuildings } from '../map/nearbyBuildings';
+	import { createConnectedFloorLookup } from '../map/connectedFloors';
 	import type { HighlightColor } from '../map/highlightColors';
 	import type { Node as MapNode, Poi } from '../../data/types';
 	import { baseMapFiles, buildingMaps } from '../../data/maps';
@@ -18,10 +21,16 @@
 	import { pois } from '../../../src/data/pois';
 
 	const graph = buildGraph(nodes, edges, edgeStairs);
+	const getConnectedFloor = createConnectedFloorLookup(graph.nodes, graph.edges);
 	const highlightRoles = ['start', 'goal', 'selected'] as const;
 	const buildingOutlinePalette = ['#2563eb', '#ea580c'] as const;
 	type PoiHighlight = { poi: Poi; layer: LType.SVGOverlay; element: SVGGraphicsElement };
 	type PoiHighlightDisplay = PoiHighlight & { color: HighlightColor; tooltip: LType.Tooltip };
+	type RouteLabelDisplay = {
+		marker: LType.Marker;
+		offset: [number, number];
+		connector?: LType.Polyline;
+	};
 	let { selectedPoi = $bindable<Poi | null>(null) }: { selectedPoi?: Poi | null } = $props();
 
 	let mapContainer: HTMLElement;
@@ -32,6 +41,8 @@
 	let routeMarkersByFloor: Partial<Record<number, LType.Marker[]>> = {};
 	let routePointsByFloor: Partial<Record<number, LType.LatLngExpression[]>> = {};
 	const routeBuildingByLayer = new WeakMap<LType.Layer, string>();
+	let routeLabels: RouteLabelDisplay[] = [];
+	let routeLabelFrame: number | undefined;
 	let svgLayersReady = false;
 	const pendingPoiHighlights: Partial<Record<HighlightColor, { poiId: string; focus: boolean }>> =
 		{};
@@ -74,6 +85,7 @@
 			tooltip.setLatLng(location);
 			if (!map.hasLayer(tooltip)) tooltip.addTo(map);
 		}
+		scheduleRouteLabels();
 	}
 
 	function updatePoiHighlights() {
@@ -118,7 +130,7 @@
 		updateVisiblePoi();
 	}
 
-	export function clearPoiHighlight(color?: HighlightColor) {
+	export function clearPoiHighlight(color: HighlightColor | undefined = undefined) {
 		if (color !== undefined && !highlightRoles.includes(color)) {
 			console.error(`ハイライトの色が見つかりません: ${color}`);
 			return;
@@ -173,7 +185,7 @@
 		switchFloor(buildingId ?? '', node.floor);
 		if (!map.hasLayer(layer)) layer.addTo(map);
 		updatePoiHighlights();
-		if (focus) focusOnLocation(node.x, node.y, 2);
+		if (focus) focusOnLocation(node.x, node.y, 1);
 		return true;
 	}
 
@@ -229,6 +241,97 @@
 		});
 	}
 
+	function scheduleRouteLabels() {
+		if (!map || !leaflet || !routeLabels.length || routeLabelFrame !== undefined) return;
+		routeLabelFrame = requestAnimationFrame(() => {
+			routeLabelFrame = undefined;
+			updateRouteLabels();
+		});
+	}
+
+	function updateRouteLabels() {
+		const L = leaflet;
+		if (!map || !L || mapContainer.querySelector('.leaflet-zoom-anim')) return;
+		const viewport = map.getSize();
+		const containerRect = mapContainer.getBoundingClientRect();
+		mapContainer.style.setProperty(
+			'--route-label-max-width',
+			`${Math.max(80, Math.min(240, viewport.x - 16))}px`
+		);
+		const localBounds = (element: Element): LabelBounds => {
+			const rect = element.getBoundingClientRect();
+			return {
+				x: rect.left - containerRect.left,
+				y: rect.top - containerRect.top,
+				width: rect.width,
+				height: rect.height
+			};
+		};
+		const obstacles: LabelBounds[] = Array.from(
+			mapContainer.parentElement?.querySelectorAll(
+				'.poi-name-tooltip, .custom-control-panel, .leaflet-control-zoom'
+			) ?? []
+		).map(localBounds);
+		const labels = routeLabels.flatMap((display) => {
+			const tooltip = display.marker.getTooltip();
+			const element = tooltip?.getElement();
+			if (!tooltip || !element || !map.hasLayer(display.marker)) {
+				display.connector?.remove();
+				return [];
+			}
+			tooltip.options.offset = display.offset;
+			element.classList.remove('route-label-displaced');
+			tooltip.update();
+			const anchor = map.latLngToContainerPoint(display.marker.getLatLng());
+			if (
+				anchor.x < -24 ||
+				anchor.x > viewport.x + 24 ||
+				anchor.y < -24 ||
+				anchor.y > viewport.y + 24
+			) {
+				display.connector?.remove();
+				return [];
+			}
+			obstacles.push({ x: anchor.x - 18, y: anchor.y - 18, width: 36, height: 36 });
+			return [{ display, tooltip, element, anchor, bounds: localBounds(element) }];
+		});
+		const placements = layoutRouteLabels(
+			labels.map(({ bounds, anchor }) => ({ ...bounds, anchorX: anchor.x, anchorY: anchor.y })),
+			{ width: viewport.x, height: viewport.y },
+			obstacles
+		);
+		for (const [index, { display, tooltip, element, anchor, bounds }] of labels.entries()) {
+			const target = placements[index];
+			const dx = target.x - bounds.x;
+			const dy = target.y - bounds.y;
+			tooltip.options.offset = [display.offset[0] + dx, display.offset[1] + dy];
+			tooltip.update();
+			const moved = Math.abs(dx) > 1 || Math.abs(dy) > 1;
+			element.classList.toggle('route-label-displaced', moved);
+			if (moved) {
+				const endpoint: LType.PointExpression = [
+					Math.max(target.x, Math.min(anchor.x, target.x + target.width)),
+					Math.max(target.y, Math.min(anchor.y, target.y + target.height))
+				];
+				const points = [map.containerPointToLatLng(anchor), map.containerPointToLatLng(endpoint)];
+				display.connector ??= L.polyline(points, {
+					pane: 'route-lines',
+					className: 'route-label-connector',
+					color: '#64748b',
+					weight: 1.5,
+					opacity: 0.65,
+					dashArray: '3 3',
+					interactive: false
+				});
+				display.connector.setLatLngs(points);
+				if (!map.hasLayer(display.connector)) display.connector.addTo(map);
+				display.connector.bringToBack();
+			} else {
+				display.connector?.remove();
+			}
+		}
+	}
+
 	function updateVisibleRoute() {
 		if (!map) return;
 		const isVisible = (layer: LType.Layer, floor: number) =>
@@ -253,6 +356,7 @@
 				}
 			}
 		}
+		scheduleRouteLabels();
 	}
 
 	function fitCurrentFloorRoute() {
@@ -307,7 +411,7 @@
 			text: string,
 			icon: 'stairs' | 'building',
 			kind: 'entry' | 'exit',
-			onClick?: () => void
+			onClick: (() => void) | undefined = undefined
 		) {
 			if (!leaflet) return;
 			const symbol = document.createElement('span');
@@ -346,6 +450,7 @@
 				opacity: 1
 			});
 			if (onClick) marker.on('click', onClick);
+			routeLabels.push({ marker, offset: [20, 0] });
 			const markers = routeMarkersByFloor[node.floor] ?? [];
 			markers.push(marker);
 			routeMarkersByFloor[node.floor] = markers;
@@ -410,6 +515,7 @@
 				className: 'route-endpoint-label',
 				opacity: 1
 			});
+			routeLabels.push({ marker, offset: [0, -20] });
 			const markers = routeMarkersByFloor[node.floor] ?? [];
 			markers.push(marker);
 			routeMarkersByFloor[node.floor] = markers;
@@ -431,6 +537,10 @@
 	}
 
 	export function clearRoute() {
+		if (routeLabelFrame !== undefined) cancelAnimationFrame(routeLabelFrame);
+		routeLabelFrame = undefined;
+		for (const label of routeLabels) label.connector?.remove();
+		routeLabels = [];
 		for (const layers of Object.values(routeLayersByFloor)) {
 			for (const layer of layers ?? []) layer.remove();
 		}
@@ -501,6 +611,21 @@
 		}
 	}
 
+	function synchronizeVisibleFloors(buildingId: string) {
+		if (visibleBuildings.length !== 2 || !visibleBuildings.some(({ id }) => id === buildingId))
+			return;
+		const target = visibleBuildings.find(({ id }) => id !== buildingId)!;
+		const connectedFloor = getConnectedFloor(
+			buildingId,
+			activeFloors[buildingId],
+			target.id,
+			activeFloors[target.id]
+		);
+		if (connectedFloor !== undefined && buildingFloorLayers[target.id]?.[connectedFloor]) {
+			activeFloors[target.id] = connectedFloor;
+		}
+	}
+
 	function setVisibleBuildings(buildings: BuildingMap[]) {
 		// 移動で近い順が変わっても、表示を続ける建物の色は維持します。
 		const retained = buildings.filter(({ id }) =>
@@ -524,6 +649,7 @@
 			}
 		}
 		if (!buildings.some(({ id }) => id === zoomedBldg)) zoomedBldg = buildings[0]?.id ?? '';
+		synchronizeVisibleFloors(zoomedBldg);
 		if (zoomedBldg) activeFloor = activeFloors[zoomedBldg];
 		showBldgMenu = buildings.length > 0;
 	}
@@ -543,6 +669,8 @@
 				setVisibleBuildings(
 					[building, ...nearby.filter(({ id }) => id !== buildingId)].slice(0, 2)
 				);
+			} else {
+				synchronizeVisibleFloors(buildingId);
 			}
 		} else {
 			setVisibleBuildings([]);
@@ -669,6 +797,7 @@
 				svgLayersReady = true;
 
 				const updateMapState = () => {
+					if (disposed) return;
 					const center = map.getCenter();
 					setVisibleBuildings(
 						map.getZoom() >= SHOW_UI_ZOOM_THRESHOLD
@@ -681,6 +810,7 @@
 				};
 
 				map.on('zoomend moveend', updateMapState);
+				map.on('move zoom resize tooltipopen tooltipclose', scheduleRouteLabels);
 				map.fitBounds(bounds);
 				updateMapState();
 
@@ -701,7 +831,14 @@
 			clearPoiHighlight();
 			for (const cleanup of poiSelectionCleanups) cleanup();
 			svgLayersReady = false;
-			if (map) map.remove();
+			if (map) {
+				// 進行中のズームが、削除済みの地図へアクセスしないようにします。
+				if (mapContainer.querySelector('.leaflet-zoom-anim')) {
+					map.once('zoomend', () => map.remove());
+				} else {
+					map.remove();
+				}
+			}
 			leaflet = undefined;
 		};
 	});
@@ -828,6 +965,22 @@
 		font-weight: bold;
 	}
 
+	:global(.route-endpoint-label),
+	:global(.route-transition-label) {
+		width: max-content;
+		max-width: var(--route-label-max-width, 240px);
+		white-space: normal;
+		overflow-wrap: anywhere;
+	}
+
+	:global(.route-label-connector) {
+		pointer-events: none !important;
+	}
+
+	:global(.route-label-displaced::before) {
+		display: none;
+	}
+
 	:global(.route-transition-marker) {
 		display: flex;
 		align-items: center;
@@ -889,6 +1042,7 @@
 		left: 20px;
 		z-index: 1000;
 		display: flex;
+		flex-direction: column;
 		align-items: flex-end;
 		gap: 12px;
 		max-width: calc(100% - 40px);
