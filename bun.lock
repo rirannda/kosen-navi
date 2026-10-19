@@ -3,7 +3,7 @@
   "configVersion": 1,
   "workspaces": {
     "": {
-      "name": "kosen-navi",
+      "name": "omuct-navi",
       "dependencies": {
         "leaflet": "^1.9.4",
       },
