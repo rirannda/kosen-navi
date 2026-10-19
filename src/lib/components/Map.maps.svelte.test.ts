@@ -112,8 +112,8 @@ describe('Map floor maps', () => {
 		await expect.poll(() => container.querySelectorAll('[data-building]').length).toBe(2);
 		const la = getByRole('region', { name: '教養棟の階' });
 		const skybridge = getByRole('region', { name: '渡り廊下の階' });
-		await la.getByRole('button', { name: '3F', exact: true }).click();
 		await skybridge.getByRole('button', { name: '2F', exact: true }).click();
+		await la.getByRole('button', { name: '3F', exact: true }).click();
 		expect(container.querySelector('[data-map="la-bldg_F3.svg"]')).not.toBeNull();
 		expect(container.querySelector('[data-map="skybridge_f2.svg"]')).not.toBeNull();
 		expect(container.querySelector('[data-map="la-bldg_F1.svg"]')).toBeNull();
@@ -155,22 +155,28 @@ describe('Map floor maps', () => {
 		expect(container.querySelector('[data-map="skybridge_f2.svg"]')).not.toBeNull();
 	});
 
-	it('隣の建物の階を変えても教養棟の経路を消さない', async () => {
+	it('接続する階へ合わせると経路と始点・終点もその階に合わせて切り替わる', async () => {
 		mockMaps();
 		const { component, container, getByRole } = await render(Map);
 		await expect.poll(() => container.querySelector('[data-map="master.svg"]')).not.toBeNull();
 		const map = maps.at(-1)!;
 		await new Promise<void>((resolve) => {
 			map.once('moveend', () => resolve());
-			component.showRoute('node_la_f1_hr_1-1', 'node_la_f1_hr_1-2');
+			component.showRoute('node_la_f1_hr_1-1', 'node_la_f2_hr_2m');
 		});
 		map.setView([595, 570], 1, { animate: false });
 		await getByRole('region', { name: '渡り廊下の階' })
 			.getByRole('button', { name: '2F', exact: true })
 			.click();
-		expect(container.querySelectorAll('.route-endpoint-marker').length).toBe(2);
+		expect(container.querySelector('.route-endpoint-start')).toBeNull();
+		expect(container.querySelector('.route-endpoint-goal')).not.toBeNull();
 		expect(container.querySelector('.leaflet-route-lines-pane path')).not.toBeNull();
-		expect(container.querySelector('[data-map="la-bldg_F1.svg"]')).not.toBeNull();
+		expect(container.querySelector('[data-map="la-bldg_F2.svg"]')).not.toBeNull();
+		expect(container.querySelector('[data-map="skybridge_f2.svg"]')).not.toBeNull();
+		await getByRole('region', { name: '教養棟の階' })
+			.getByRole('button', { name: '3F', exact: true })
+			.click();
+		expect(container.querySelector('.route-endpoint-goal')).toBeNull();
 		expect(container.querySelector('[data-map="skybridge_f2.svg"]')).not.toBeNull();
 	});
 
@@ -193,5 +199,127 @@ describe('Map floor maps', () => {
 		await expect.poll(() => container.querySelectorAll('[data-building]').length).toBe(2);
 		expect(container.querySelectorAll('.building-floor-outline').length).toBe(2);
 		expect(container.querySelector('[data-map="lib_F1.svg"]')).toBeNull();
+	});
+
+	it('両方の階ボタンから接続する階へ同期し、接続のない階では相手を変えない', async () => {
+		mockMaps();
+		const { container, getByRole } = await render(Map);
+		await expect.poll(() => container.querySelector('[data-map="master.svg"]')).not.toBeNull();
+		maps.at(-1)!.setView([595, 570], 1, { animate: false });
+		const la = getByRole('region', { name: '教養棟の階' });
+		const skybridge = getByRole('region', { name: '渡り廊下の階' });
+		await la.getByRole('button', { name: '2F', exact: true }).click();
+		expect(container.querySelector('[data-map="la-bldg_F2.svg"]')).not.toBeNull();
+		expect(container.querySelector('[data-map="skybridge_f2.svg"]')).not.toBeNull();
+		await skybridge.getByRole('button', { name: '1F', exact: true }).click();
+		expect(container.querySelector('[data-map="la-bldg_F1.svg"]')).not.toBeNull();
+		expect(container.querySelector('[data-map="skybridge_f1.svg"]')).not.toBeNull();
+		await la.getByRole('button', { name: '3F', exact: true }).click();
+		expect(container.querySelector('[data-map="la-bldg_F3.svg"]')).not.toBeNull();
+		expect(container.querySelector('[data-map="skybridge_f1.svg"]')).not.toBeNull();
+		await skybridge.getByRole('button', { name: '2F', exact: true }).click();
+		expect(container.querySelector('[data-map="la-bldg_F2.svg"]')).not.toBeNull();
+		expect(container.querySelector('[data-map="skybridge_f2.svg"]')).not.toBeNull();
+	});
+
+	it('1棟表示から2棟表示になったときも、表示中の棟の階を基準に同期する', async () => {
+		mockMaps();
+		const { container, getByRole } = await render(Map);
+		await expect.poll(() => container.querySelector('[data-map="master.svg"]')).not.toBeNull();
+		const map = maps.at(-1)!;
+		map.setView([595, 570], 1, { animate: false });
+		await getByRole('region', { name: '渡り廊下の階' })
+			.getByRole('button', { name: '1F', exact: true })
+			.click();
+		map.setView([595, 481], 1, { animate: false });
+		await expect.poll(() => container.querySelectorAll('[data-building]').length).toBe(1);
+		await getByRole('region', { name: '教養棟の階' })
+			.getByRole('button', { name: '2F', exact: true })
+			.click();
+		map.setView([595, 570], 1, { animate: false });
+		await expect
+			.poll(() => container.querySelector('[data-map="skybridge_f2.svg"]'))
+			.not.toBeNull();
+		expect(container.querySelector('[data-map="la-bldg_F2.svg"]')).not.toBeNull();
+	});
+
+	it('建物間の接続がない場合は、相手の階を変更しない', async () => {
+		mockMaps();
+		const { container, getByRole } = await render(Map);
+		await expect.poll(() => container.querySelector('[data-map="master.svg"]')).not.toBeNull();
+		maps.at(-1)!.setView([315, 980], 2, { animate: false });
+		await expect.poll(() => container.querySelectorAll('[data-building]').length).toBe(2);
+		await getByRole('region', { name: '体育館の階' })
+			.getByRole('button', { name: '2F', exact: true })
+			.click();
+		expect(container.querySelector('[data-map="gym_F2.svg"]')).not.toBeNull();
+		expect(container.querySelector('[data-map="mah.svg"]')).not.toBeNull();
+		expect(
+			container.querySelector('[data-building="mah"] button.active')?.textContent?.trim()
+		).toBe('1F');
+	});
+
+	it('入口の0階には同期せず、接続のある1階・2階だけを合わせる', async () => {
+		mockMaps();
+		const { container, getByRole } = await render(Map);
+		await expect.poll(() => container.querySelector('[data-map="master.svg"]')).not.toBeNull();
+		maps.at(-1)!.setView([399.75, 664], 1, { animate: false });
+		const entrance = getByRole('region', { name: '入口の階' });
+		const skybridge = getByRole('region', { name: '渡り廊下の階' });
+		await skybridge.getByRole('button', { name: '2F', exact: true }).click();
+		expect(container.querySelector('[data-map="entrance_f2.svg"]')).not.toBeNull();
+		await entrance.getByRole('button', { name: '0F', exact: true }).click();
+		expect(container.querySelector('[data-map="entrance.svg"]')).not.toBeNull();
+		expect(container.querySelector('[data-map="skybridge_f2.svg"]')).not.toBeNull();
+		await skybridge.getByRole('button', { name: '1F', exact: true }).click();
+		expect(container.querySelector('[data-map="entrance_f1.svg"]')).not.toBeNull();
+	});
+
+	it('近い地点の案内・始点・終点の吹き出しを重ねず、ズームや幅の変更後も配置する', async () => {
+		mockMaps();
+		const { component, container } = await render(Map);
+		await expect.poll(() => container.querySelector('[data-map="master.svg"]')).not.toBeNull();
+		const map = maps.at(-1)!;
+		await new Promise<void>((resolve) => {
+			map.once('moveend', () => resolve());
+			component.showRoute('node_la_f1_entrance', 'node_skybridge_f1_ee_la-south');
+		});
+		const fitsWithoutOverlap = () => {
+			const labels = Array.from(
+				container.querySelectorAll('.route-transition-label, .route-endpoint-label')
+			);
+			if (labels.length !== 3) return false;
+			const viewport = container.querySelector('.map-container')!.getBoundingClientRect();
+			const bounds = labels.map((element) => element.getBoundingClientRect());
+			return bounds.every(
+				(rect, index) =>
+					rect.width > 0 &&
+					rect.left >= viewport.left &&
+					rect.right <= viewport.right &&
+					rect.top >= viewport.top &&
+					rect.bottom <= viewport.bottom &&
+					bounds
+						.slice(0, index)
+						.every(
+							(other) =>
+								rect.right <= other.left ||
+								rect.left >= other.right ||
+								rect.bottom <= other.top ||
+								rect.top >= other.bottom
+						)
+			);
+		};
+		await expect.poll(fitsWithoutOverlap).toBe(true);
+		expect(container.querySelector('.route-label-connector')).not.toBeNull();
+		map.setZoom(0, { animate: false });
+		await expect.poll(fitsWithoutOverlap).toBe(true);
+		container.querySelector<HTMLElement>('.map-wrapper')!.style.width = '320px';
+		map.invalidateSize({ animate: false });
+		await expect.poll(fitsWithoutOverlap).toBe(true);
+		component.clearRoute();
+		expect(container.querySelector('.route-label-connector')).toBeNull();
+		await expect
+			.poll(() => container.querySelector('.route-transition-label, .route-endpoint-label'))
+			.toBeNull();
 	});
 });

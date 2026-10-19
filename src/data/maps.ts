@@ -90,7 +90,7 @@ export const buildingMaps: BuildingMap[] = [
 	},
 	{
 		id: 'entrance',
-		name: '入口',
+		name: 'エントランス',
 		bounds: [561.5, 1276.5, 766.5, 1324],
 		floors: { 0: 'entrance.svg', 1: 'entrance_f1.svg', 2: 'entrance_f2.svg' },
 		overview: 'entrance.svg'
