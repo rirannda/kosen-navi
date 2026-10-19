@@ -11,6 +11,7 @@
 ```typescript
 type MapNode = {
 	id: string; // 例: "node_1f_ent", "node_1f_A_stairs" (一意のID)
+	buildingId?: string; // 建物ID。省略時は node_<建物ID>_f<階>_<地点> から判定
 	floor: number; // 階数 (例: 1, 2, 3。マップ切り替えの判定に使用)
 	x: number; // マップ上のX座標 (※Leafletの L.CRS.Simple 座標系に準拠)
 	y: number; // マップ上のY座標 (※同上)

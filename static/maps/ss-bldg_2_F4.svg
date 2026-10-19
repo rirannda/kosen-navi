@@ -1,28 +1,28 @@
-<svg width="1400" height="1700" viewBox="0 0 1400 1700" fill="none" xmlns="http://www.w3.org/2000/svg">
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="1700" viewBox="0 0 1400 1700" fill="none">
 <g id="ss-bldg_2_F4">
-<path id="ss2_f4_flame" d="M256 836H579V929.5H256V836Z" stroke="black"/>
-<path id="lab-env-material-chem-4-2" d="M256 836H302.5V875H256V836Z" stroke="black"/>
-<path id="lab-env-material-chem-4-1" d="M302.5 836H349V875H302.5V836Z" stroke="black"/>
-<path id="pr-env-material-chem-4-1" d="M349 836H373V875H349V836Z" stroke="black"/>
-<path id="co-env-material-chem" d="M373 836H395.5V875H373V836Z" stroke="black"/>
-<path id="meeting-room_ss2_f4" d="M395.5 836H418V875H395.5V836Z" stroke="black"/>
-<path id="wc-mens_ss2_f4" d="M418 836H439.5V856H418V836Z" stroke="black"/>
-<path id="stg_ss2_f4_center" d="M429 856H439.5V875H429V856Z" stroke="black"/>
-<path id="po-c-tamura" d="M439.5 836H461.5V875H439.5V836Z" stroke="black"/>
-<path id="lecture-social-infrastructure-structure" d="M461.5 836H485V875H461.5V836Z" stroke="black"/>
-<path id="environmental-design-studio" d="M485 836H529.5V875H485V836Z" stroke="black"/>
-<path id="craft-room" d="M529.5 836H579V875H529.5V836Z" stroke="black"/>
-<path id="po-c-noda" d="M256 890.5H280.5V929.5H256V890.5Z" stroke="black"/>
-<path id="lab-env-material-chem-4-3" d="M280.5 890.5H302.5V929.5H280.5V890.5Z" stroke="black"/>
-<path id="lab-env-material-chem-4-4" d="M302.5 890.5H324.5V929.5H302.5V890.5Z" stroke="black"/>
-<path id="po-c-spare-2" d="M324.5 890.5H349V929.5H324.5V890.5Z" stroke="black"/>
-<path id="changing_ss2_f4" d="M349 890.5H360V929.5H349V890.5Z" stroke="black"/>
-<path id="po-c-yamano" d="M360 890.5H395.5V929.5H360V890.5Z" stroke="black"/>
+<path id="ss2_f4_flame" d="M 339 836 H 579 V 913.5 H 339 V 836 Z" stroke="black"/>
+<path id="lab-env-material-chem-4-2" d="M 339 836 H 374 V 868.5 H 339 V 836 Z" stroke="black"/>
+<path id="lab-env-material-chem-4-1" d="M 374 836 H 408 V 868.5 H 374 V 836 Z" stroke="black"/>
+<path id="pr-env-material-chem-4-1" d="M 408 836 H 426 V 868.5 H 408 V 836 Z" stroke="black"/>
+<path id="co-env-material-chem" d="M 426 836 H 443 V 868.5 H 426 V 836 Z" stroke="black"/>
+<path id="meeting-room_ss2_f4" d="M 443 836 H 459 V 868.5 H 443 V 836 Z" stroke="black"/>
+<path id="wc-mens_ss2_f4" d="M 459 836 H 475 V 852.5 H 459 V 836 Z" stroke="black"/>
+<path id="stg_ss2_f4_center" d="M 467.5 852.5 H 475 V 868.5 H 467.5 V 852.5 Z" stroke="black"/>
+<path id="po-e-tamura" d="M 475 836 H 491.5 V 868.5 H 475 V 836 Z" stroke="black"/>
+<path id="lecture-social-infrastructure-structure" d="M 491.5 836 H 509 V 868.5 H 491.5 V 836 Z" stroke="black"/>
+<path id="environmental-design-studio" d="M 509 836 H 542 V 868.5 H 509 V 836 Z" stroke="black"/>
+<path id="craft-room" d="M 542 836 H 579 V 868.5 H 542 V 836 Z" stroke="black"/>
+<path id="po-e-noda" d="M 339 881 H 357.5 V 913.5 H 339 V 881 Z" stroke="black"/>
+<path id="lab-env-material-chem-4-3" d="M 357.5 881 H 374 V 913.5 H 357.5 V 881 Z" stroke="black"/>
+<path id="lab-env-material-chem-4-4" d="M 374 881 H 389.5 V 913.5 H 374 V 881 Z" stroke="black"/>
+<path id="po-c-spare-2" d="M 389.5 881 H 408 V 913.5 H 389.5 V 881 Z" stroke="black"/>
+<path id="changing_ss2_f4" d="M 408 881 H 416.5 V 913.5 H 408 V 881 Z" stroke="black"/>
+<path id="po-i-yamano" d="M 416.5 881 H 443 V 913.5 H 416.5 V 881 Z" stroke="black"/>
 <g id="stair_ss2_f4_center">
-<path id="stair_ss2_f4_center_flame" d="M407 900H429V929.5H407V900Z" stroke="black"/>
-<path id="stair_ss2_f4_center_lines" d="M407 907.5H429M407 915H429M407 922H429" stroke="black" stroke-width="0.5"/>
+<path id="stair_ss2_f4_center_flame" d="M 451.5 889 H 467.5 V 913.5 H 451.5 V 889 Z" stroke="black"/>
+<path id="stair_ss2_f4_center_lines" d="M 451.5 895 H 467.5 M 451.5 901.5 H 467.5 M 451.5 907.5 H 467.5" stroke="black" stroke-width="0.5"/>
 </g>
-<path id="lab-intelligent-information-2" d="M439.5 890.5H485V929.5H439.5V890.5Z" stroke="black"/>
-<path id="drafting-room" d="M485 890.5H579V929.5H485V890.5Z" stroke="black"/>
+<path id="lab-intelligent-information-2" d="M 475 881 H 509 V 913.5 H 475 V 881 Z" stroke="black"/>
+<path id="drafting-room" d="M 509 881 H 579 V 913.5 H 509 V 881 Z" stroke="black"/>
 </g>
 </svg>

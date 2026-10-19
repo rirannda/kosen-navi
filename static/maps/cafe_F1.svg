@@ -1,15 +1,9 @@
 <svg width="1400" height="1700" viewBox="0 0 1400 1700" fill="none" xmlns="http://www.w3.org/2000/svg">
 <g id="cafe_F1">
-<path id="cafe_f1_flame" d="M748 1195H833V1277H809.5V1272.5H796.5V1277H748V1195Z" stroke="black"/>
-<path id="dining-hall" d="M759.5 1199.5H825.5V1246.5H759.5V1199.5Z" stroke="black"/>
-<path id="wc-mens_cafe_f1" d="M767.5 1246.5H782.5V1259.5H767.5V1246.5Z" stroke="black"/>
-<path id="wc_cafe_f1" d="M778 1259.5H782.5V1265H778V1259.5Z" stroke="black"/>
-<path id="rest-room_cafe_f1" d="M767.5 1259.5H778V1277H767.5V1259.5Z" stroke="black"/>
-<path id="kitchen" d="M782.5 1251L814 1251L814 1246.5L825.5 1246.5L825.5 1251L829.5 1251L833 1255.5L833 1269L829.5 1273L825.5 1273L825.5 1277L782.5 1277Z" stroke="black"/>
-<path id="food-storage_cafe_f1" d="M825.5 1246.5L829.5 1251L833 1255.5L833 1269L829.5 1273L825.5 1273Z" stroke="black"/>
-<g id="stair_cafe_f1_west">
-<path id="stair_cafe_f1_west_flame" d="M748 1216H756V1242.5H748V1216Z" stroke="black"/>
-<path id="stair_cafe_f1_west_lines" d="M748 1221.5H756M748 1226.5H756M748 1232H756M748 1237H756" stroke="black" stroke-width="0.5"/>
-</g>
+<path id="cafe_f1_flame" fill-rule="evenodd" clip-rule="evenodd" d="M832.5 1272H757.5V1244.5H748V1195H832.5V1272Z" stroke="black"/>
+<path id="vending-machine-corner" fill-rule="evenodd" clip-rule="evenodd" d="M757.5 1263H748V1277H757.5V1263Z" stroke="black"/>
+<path id="dining-hall" fill-rule="evenodd" clip-rule="evenodd" d="M832.5 1244.5H748V1195H832.5V1244.5Z" stroke="black"/>
+<path id="wc-men_cafe_f1" fill-rule="evenodd" clip-rule="evenodd" d="M757.5 1258.5V1244.5H776V1258.5H757.5Z" stroke="black"/>
+<path id="kitchen" fill-rule="evenodd" clip-rule="evenodd" d="M757.5 1272V1258.5H776V1244.5H832.5V1272H757.5Z" stroke="black"/>
 </g>
 </svg>

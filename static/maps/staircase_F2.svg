@@ -1,14 +1,10 @@
 <svg width="1400" height="1700" viewBox="0 0 1400 1700" fill="none" xmlns="http://www.w3.org/2000/svg">
-<g id="staircase_F2">
-<path id="staircase_f2_flame" d="M579 836H627V929.5H579V836Z" stroke="black"/>
-<g id="stair_staircase_f2_north">
-<path id="stair_staircase_f2_north_flame" d="M592.5 840.5H610.5V868.5H592.5V840.5Z" stroke="black"/>
-<path id="stair_staircase_f2_north_lines" d="M592.5 846H610.5M592.5 851.5H610.5M592.5 857.5H610.5M592.5 863H610.5" stroke="black" stroke-width="0.5"/>
+<g id="staircase-f2">
+<g id="stair_staircase_f2">
+<path id="stair_flame" fill-rule="evenodd" clip-rule="evenodd" d="M609 868H592V844H609V868Z" stroke="black"/>
+<path id="lines" d="M592 862H609M592 856H609M592 850H609" stroke="black"/>
 </g>
-<path id="wc-mens_staircase_f2" d="M592.5 881L610.5 881L610.5 913.5L606.5 918L596.5 918L592.5 913.5Z" stroke="black"/>
-<g id="stair_staircase_f2_south">
-<path id="stair_staircase_f2_south_flame" d="M592.5 921.5H610.5V929.5H592.5V921.5Z" stroke="black"/>
-<path id="stair_staircase_f2_south_lines" d="M597 921.5V929.5M601.5 921.5V929.5M606 921.5V929.5" stroke="black" stroke-width="0.5"/>
-</g>
+<path id="wc-men_staircase_f2" fill-rule="evenodd" clip-rule="evenodd" d="M592 905V880.5H609V905H592Z" stroke="black"/>
+<path id="staircase_f2_flame" fill-rule="evenodd" clip-rule="evenodd" d="M592 889.5H579V862.5H592V844H609V862.5H627V889.5H609V905H592V889.5Z" stroke="black"/>
 </g>
 </svg>
