@@ -1,7 +1,7 @@
 <script lang="ts">
-	import Map from '$lib/components/Map.svelte';
-	import TestButton from '$lib/components/TestButton.svelte';
-	import type { HighlightColor, Poi } from '$lib';
+	import Map from '#lib/components/Map.svelte';
+	import TestButton from '#lib/components/TestButton.svelte';
+	import type { HighlightColor, Poi } from '#lib';
 
 	type MapController = {
 		focusOnPoiId: (poiId: string) => void;

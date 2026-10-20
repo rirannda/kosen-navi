@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { HighlightColor } from '$lib';
+	import type { HighlightColor } from '#lib';
 	import { pois } from '../../data/pois';
 	let {
 		focusOnPoi,
