@@ -4,8 +4,8 @@
 
 ```svelte
 <script lang="ts">
-	import Map from '$lib/components/Map.svelte';
-	import type { HighlightColor, Poi } from '$lib';
+	import Map from '#lib/components/Map.svelte';
+	import type { HighlightColor, Poi } from '#lib';
 
 	let selectedPoi = $state<Poi | null>(null);
 
@@ -36,7 +36,7 @@
 | `goal`     | 赤  | ゴール     |
 | `selected` | 黄  | 通常の選択 |
 
-色の定義は `src/lib/map/highlightColors.ts` にあり、`$lib` から `highlightColors` と
+色の定義は `src/lib/map/highlightColors.ts` にあり、`#lib` から `highlightColors` と
 `HighlightColor` 型を参照できます。塗り・枠線・吹き出しの文字色をまとめて変更できます。
 
 `start`・`goal`・`selected` の3枠に、それぞれ最大1部屋だけ保持できます。最大3部屋を
