@@ -29,5 +29,6 @@ export type Poi = {
 	nodeId: string;
 	svgId: string;
 	description: string;
+	keys?: string[];
 };
 export type Pois = Poi[];
