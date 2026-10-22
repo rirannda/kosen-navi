@@ -2,6 +2,7 @@
 	import OMUCTMap from '#lib/components/Map.svelte';
 	import TestButton from '#lib/components/TestButton.svelte';
 	import type { HighlightColor, Poi } from '#lib';
+	import SearchBar from '#lib/components/layout/SearchBar.svelte';
 
 	type MapController = {
 		focusOnPoiId: (poiId: string) => void;
@@ -12,6 +13,7 @@
 
 	let mapComponent: MapController | undefined;
 	let selectedPoi = $state<Poi | null>(null);
+
 </script>
 
 <OMUCTMap bind:this={mapComponent} bind:selectedPoi />
@@ -23,3 +25,4 @@
 	highlightPoi={(poiId, color) => mapComponent?.highlightPoiById(poiId, color)}
 	clearPoiHighlight={() => mapComponent?.clearPoiHighlight()}
 />
+<SearchBar onselect={(poiId) => mapComponent?.focusOnPoiId(poiId)} large />
