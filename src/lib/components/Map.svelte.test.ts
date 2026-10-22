@@ -13,8 +13,11 @@ function svgForUrl(url: string): string {
 }
 
 function mockMaps(ready: Promise<void> = Promise.resolve()) {
+	const fetchMap = globalThis.fetch.bind(globalThis);
 	vi.spyOn(globalThis, 'fetch').mockImplementation(async (input) => {
 		await ready;
+		// 正門は実際のSVGを使い、POIとのIDの不一致も検出します。
+		if (String(input).endsWith('main-gate.svg')) return fetchMap(input);
 		return new Response(svgForUrl(String(input)), { headers: { 'Content-Type': 'image/svg+xml' } });
 	});
 }
@@ -24,6 +27,53 @@ afterEach(() => {
 });
 
 describe('Map POI selection', () => {
+	it('正門のSVGをタップやキーボードで選択し、部屋と同じ選択枠でハイライトする', async () => {
+		mockMaps();
+		const selection = { value: null as Poi | null };
+		const { component, container, getByRole } = await render(Map, {
+			props: {
+				get selectedPoi() {
+					return selection.value;
+				},
+				set selectedPoi(value) {
+					selection.value = value;
+				}
+			}
+		});
+		await expect.poll(() => container.querySelector('#main-gate.poi-selectable')).not.toBeNull();
+		component.focusOnPoiId('poi_main-gate');
+		await expect
+			.poll(() => container.querySelector('.leaflet-zoom-anim, .leaflet-pan-anim'), {
+				timeout: 3000
+			})
+			.toBeNull();
+		const mapTransform = container.querySelector<HTMLElement>('.leaflet-map-pane')!.style.transform;
+		await getByRole('button', { name: '正門', exact: true }).click();
+		expect(selection.value?.id).toBe('poi_main-gate');
+		expect(selection.value?.nodeId).toBe('node_outdoor_f0_main-gate');
+		expect(container.querySelector('.poi-highlight')?.id).toBe('main-gate');
+		expect(getComputedStyle(container.querySelector('#main-gate_2')!).fill).toBe(
+			'rgb(251, 191, 36)'
+		);
+		expect(container.querySelector('.poi-name-tooltip')?.textContent).toBe('正門');
+		expect(container.querySelector<HTMLElement>('.leaflet-map-pane')!.style.transform).toBe(
+			mapTransform
+		);
+		component.clearPoiHighlight('selected');
+		expect(selection.value).toBeNull();
+		container
+			.querySelector('#main-gate')!
+			.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
+		expect(selection.value?.id).toBe('poi_main-gate');
+		expect(component.highlightPoiById('poi_hr_1-1')).toBe(true);
+		expect(container.querySelector('#main-gate')!.classList.contains('poi-highlight')).toBe(false);
+		expect(selection.value?.id).toBe('poi_hr_1-1');
+		expect(component.highlightPoiById('poi_main-gate', 'goal')).toBe(true);
+		expect(selection.value?.id).toBe('poi_hr_1-1');
+		expect(container.querySelector('#main-gate')!.classList.contains('poi-color-goal')).toBe(true);
+		expect(container.querySelectorAll('.poi-highlight').length).toBe(2);
+	});
+
 	it('図形の内部やグループの子要素からPOIを選択し、親へ選択結果を渡す', async () => {
 		mockMaps();
 		const selection = { value: null as Poi | null };
