@@ -633,6 +633,18 @@
 		}
 	}
 
+	function getAvailableFloor(buildingId: string, preferredFloor: number): number {
+		const layers = buildingFloorLayers[buildingId];
+		if (!layers || layers[preferredFloor]) return preferredFloor;
+		if (layers[1]) return 1;
+		// 1階が非公開の建物では、登録済みの最も低い階を表示します。
+		return (
+			Object.keys(layers)
+				.map(Number)
+				.sort((a, b) => a - b)[0] ?? preferredFloor
+		);
+	}
+
 	function setVisibleBuildings(buildings: BuildingMap[]) {
 		// 移動で近い順が変わっても、表示を続ける建物の色は維持します。
 		const retained = buildings.filter(({ id }) =>
@@ -652,7 +664,7 @@
 		visibleBuildings = buildings;
 		for (const { id } of buildings) {
 			if (activeFloors[id] === undefined) {
-				activeFloors[id] = buildingFloorLayers[id]?.[activeFloor] ? activeFloor : 1;
+				activeFloors[id] = getAvailableFloor(id, activeFloor);
 			}
 		}
 		if (!buildings.some(({ id }) => id === zoomedBldg)) zoomedBldg = buildings[0]?.id ?? '';
@@ -666,7 +678,7 @@
 		const layers = buildingFloorLayers[buildingId];
 		zoomedBldg = layers ? buildingId : '';
 		// 建物を移動したとき、存在しない階のまま空白になることを防ぎます。
-		activeFloor = layers && !layers[floor] ? 1 : floor;
+		activeFloor = getAvailableFloor(buildingId, floor);
 		if (layers) {
 			activeFloors[buildingId] = activeFloor;
 			if (!visibleBuildings.some(({ id }) => id === buildingId)) {
