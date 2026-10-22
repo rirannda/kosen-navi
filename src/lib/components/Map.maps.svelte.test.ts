@@ -264,7 +264,7 @@ describe('Map floor maps', () => {
 		const { container, getByRole } = await render(Map);
 		await expect.poll(() => container.querySelector('[data-map="master.svg"]')).not.toBeNull();
 		maps.at(-1)!.setView([399.75, 664], 1, { animate: false });
-		const entrance = getByRole('region', { name: '入口の階' });
+		const entrance = getByRole('region', { name: 'エントランスの階' });
 		const skybridge = getByRole('region', { name: '渡り廊下の階' });
 		await skybridge.getByRole('button', { name: '2F', exact: true }).click();
 		expect(container.querySelector('[data-map="entrance_f2.svg"]')).not.toBeNull();
