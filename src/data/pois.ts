@@ -2510,7 +2510,7 @@ export const pois: Pois = [
 		name: '正門',
 		categoryId: 'others',
 		nodeId: 'node_outdoor_f0_main-gate',
-		svgId: 'stg_main-gate',
+		svgId: 'main-gate',
 		description: ''
 	}
 ];

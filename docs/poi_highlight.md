@@ -27,6 +27,8 @@
 `highlightPoiById(poiId, color = 'selected')` は `pois` の `nodeId` から建物・階を特定し、その階のSVG内にある
 `svgId` の要素へ `poi-highlight` クラスを追加します。対応する階へ切り替えて移動し、
 図形の中心に `name` の吹き出しを表示します。
+屋外のPOIは基本図のSVGから探します。正門は `poi_main-gate` で指定でき、
+`highlightPoiById('poi_main-gate', 'goal')` のように色を指定できます。
 
 第2引数は色と役割を指定します。省略時は `selected` です。
 
@@ -53,7 +55,7 @@ mapComponent?.highlightPoiById('poi_hr_1-3', 'selected');
 色は `selected`、`goal`、`start` の順で優先し、優先されている枠を解除すると残る枠の色へ戻ります。
 階を切り替えて対象のSVGが非表示になると、その部屋の吹き出しも隠れ、対象の階へ戻ると再表示されます。
 
-建物内のPOIに対応するSVGをタップすると、黄色のハイライトと吹き出しを表示し、
+建物内のPOIや正門に対応するSVGをタップすると、黄色のハイライトと吹き出しを表示し、
 `selectedPoi` に該当する `Poi` オブジェクトを登録します。親から `bind:selectedPoi` で参照でき、
 `selectedPoi.id`、`selectedPoi.name`、`selectedPoi.nodeId` などを利用できます。
 タップでは地図の位置・ズームを維持します。グループの子要素をタップした場合も親のPOIを選び、
