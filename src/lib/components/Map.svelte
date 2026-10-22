@@ -59,6 +59,7 @@
 	let buildingOutlineColors = $state<Record<string, string>>({});
 	const buildingFloorLayers: Record<string, Partial<Record<number, LType.SVGOverlay>>> = {};
 	const overviewLayers: Record<string, LType.SVGOverlay> = {};
+	const basePoiLayers: LType.SVGOverlay[] = [];
 	const visibleFloorLayers = new SvelteSet<LType.SVGOverlay>();
 
 	function getNodeBuildingId(node: MapNode): string {
@@ -169,11 +170,17 @@
 			return true;
 		}
 
-		const buildingId = node.buildingId ?? /^node_(.+)_f-?\d+_/.exec(node.id)?.[1];
-		const layer = buildingId ? buildingFloorLayers[buildingId]?.[node.floor] : undefined;
+		const buildingId = getNodeBuildingId(node);
+		const selector = `#${CSS.escape(poi.svgId)}`;
+		// 屋外は基本図、屋内は対象の建物・階のSVGだけを探します。
+		const layer =
+			buildingId === 'outdoor'
+				? basePoiLayers.find((candidate) =>
+						svgElementsByLayer.get(candidate)?.querySelector(selector)
+					)
+				: buildingFloorLayers[buildingId]?.[node.floor];
 		const svg = layer ? svgElementsByLayer.get(layer) : undefined;
-		// 建物・階のSVG内だけを探し、別の地図にある同名の要素を選ばないようにします。
-		const element = svg?.querySelector(`#${CSS.escape(poi.svgId)}`);
+		const element = svg?.querySelector(selector);
 		if (!layer || !(element instanceof SVGGraphicsElement)) {
 			console.error(`POIのSVG要素が見つかりません: ${poiId} (${poi.svgId})`);
 			return false;
@@ -182,7 +189,7 @@
 		delete pendingPoiHighlights[color];
 		poiHighlights[color] = { poi, layer, element };
 		if (color === 'selected') selectedPoi = poi;
-		switchFloor(buildingId ?? '', node.floor);
+		if (buildingId !== 'outdoor') switchFloor(buildingId, node.floor);
 		if (!map.hasLayer(layer)) layer.addTo(map);
 		updatePoiHighlights();
 		if (focus) focusOnLocation(node.x, node.y, 1);
@@ -768,7 +775,12 @@
 				);
 				if (disposed) return;
 
-				for (const file of baseMapFiles) loadedLayers.get(file)!.addTo(map);
+				for (const file of baseMapFiles) {
+					const layer = loadedLayers.get(file)!;
+					basePoiLayers.push(layer);
+					enablePoiSelection(layer, 'outdoor', 0);
+					layer.addTo(map);
+				}
 				for (const building of buildingMaps) {
 					if (building.overview) {
 						// 同じSVGを0Fでも使う場合も、全体図と階別図のレイヤーを分けます。
@@ -865,6 +877,7 @@
 								class:active={activeFloors[building.id] === floor}
 								aria-pressed={activeFloors[building.id] === floor}
 								onclick={() => switchFloor(building.id, floor)}
+								type="button"
 							>
 								{floor < 0 ? `B${-floor}` : `${floor}F`}
 							</button>

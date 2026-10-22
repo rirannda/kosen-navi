@@ -1,5 +1,5 @@
 <script lang="ts">
-	import Map from '#lib/components/Map.svelte';
+	import OMUCTMap from '#lib/components/Map.svelte';
 	import TestButton from '#lib/components/TestButton.svelte';
 	import type { HighlightColor, Poi } from '#lib';
 
@@ -14,9 +14,8 @@
 	let selectedPoi = $state<Poi | null>(null);
 </script>
 
-<h1>Welcome to SvelteKit</h1>
-<p>Visit <a href="https://svelte.dev/docs/kit">svelte.dev/docs/kit</a> to read the documentation</p>
-<Map bind:this={mapComponent} bind:selectedPoi />
+<OMUCTMap bind:this={mapComponent} bind:selectedPoi />
+<!-- この下のpとTestButtonを置き換えて検索などを置く -->
 <p aria-live="polite">選択中: {selectedPoi?.name ?? '未選択'}</p>
 <TestButton
 	focusOnPoi={(poiId) => mapComponent?.focusOnPoiId(poiId)}
