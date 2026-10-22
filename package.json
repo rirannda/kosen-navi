@@ -4,12 +4,13 @@
 	"version": "0.0.1",
 	"type": "module",
 	"imports": {
+		"#lib": "./src/lib/index.js",
 		"#lib/*": "./src/lib/*"
 	},
 	"scripts": {
 		"dev": "vite dev",
-		"build": "wrangler types && vite build",
-		"preview": "wrangler pages dev .svelte-kit/cloudflare --port 4173",
+		"build": "vite build && wrangler types && prettier --write worker-configuration.d.ts",
+		"preview": "wrangler dev --port 4173",
 		"prepare": "svelte-kit sync || echo ''",
 		"check": "wrangler types --check && svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
 		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",

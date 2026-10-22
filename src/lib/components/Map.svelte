@@ -787,7 +787,7 @@
 							border.setAttribute('aria-hidden', 'true');
 							border.classList.add('building-floor-outline');
 							// 壁の線は上に残し、輪郭の周囲だけに柔らかな色を広げます。
-							outline.before(border);
+							outline.parentNode?.insertBefore(border, outline);
 						}
 						layers[Number(floor)] = layer;
 						enablePoiSelection(layer, building.id, Number(floor));
