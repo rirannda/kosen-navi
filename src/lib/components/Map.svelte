@@ -1048,9 +1048,10 @@
 
 	.map-wrapper {
 		position: relative;
+		isolation: isolate;
 		width: 100%;
-		height: 600px;
-		border-radius: 8px;
+		height: 100vh;
+		height: 100dvh;
 		overflow: hidden;
 	}
 
