@@ -1,6 +1,6 @@
 import { readdirSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { baseMapFiles, buildingMaps } from './maps';
+import { baseMapFiles, buildingMaps } from '../maps';
 
 describe('map assets', () => {
 	it('static/mapsの全SVGが読み込み対象に登録され、削除済みファイルを参照していない', () => {

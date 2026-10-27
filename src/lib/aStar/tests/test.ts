@@ -1,9 +1,9 @@
-import { nodes } from '../../data/nodes.ts';
-import { edges } from '../../data/edges.ts';
-import { edgeStairs } from '../../data/edge_stair.ts';
-import { pois } from '../../data/pois.ts';
-import { buildGraph } from './buildGraph.ts';
-import { aStar } from './aStar.ts';
+import { nodes } from '../../../data/nodes.ts';
+import { edges } from '../../../data/edges.ts';
+import { edgeStairs } from '../../../data/edge_stair.ts';
+import { pois } from '../../../data/pois.ts';
+import { buildGraph } from '../buildGraph.ts';
+import { aStar } from '../aStar.ts';
 
 const graph = buildGraph(nodes, edges, edgeStairs);
 

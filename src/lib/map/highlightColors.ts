@@ -5,3 +5,4 @@ export const highlightColors = {
 } as const;
 
 export type HighlightColor = keyof typeof highlightColors;
+export const highlightRoles = ['start', 'goal', 'selected'] as const;

@@ -1,8 +1,8 @@
 <script lang="ts">
 	import './layout.css';
 	import favicon from '#lib/assets/favicon.svg';
-	import BottomNav from '#lib/components/layout/BottomNav.svelte';
-	import Header from '#lib/components/Header.svelte';
+	// import BottomNav from '#lib/components/layout/BottomNav.svelte';
+	// import Header from '#lib/components/Header.svelte';
 
 	const appName = 'OMUCT Navi';
 	const title = `${appName} | 校内マップ・経路案内`;

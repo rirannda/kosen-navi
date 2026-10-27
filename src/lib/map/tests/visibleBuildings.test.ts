@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { buildingMaps } from '../../data/maps';
-import type { BuildingMap } from '../../data/maps';
-import { getVisibleBuildings } from './visibleBuildings';
+import { buildingMaps } from '../../../data/maps';
+import type { BuildingMap } from '../../../data/maps';
+import { getVisibleBuildings } from '../visibleBuildings';
 
 describe('getVisibleBuildings', () => {
 	it('全体表示では中心や棟数で絞らず、レイヤーのある全建物を返す', () => {

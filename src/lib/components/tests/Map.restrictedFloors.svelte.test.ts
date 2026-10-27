@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { render } from 'vitest-browser-svelte';
 import type * as LType from 'leaflet';
-import Map from './Map.svelte';
+import Map from '../Map.svelte';
 
 const { maps } = vi.hoisted(() => ({ maps: [] as LType.Map[] }));
 vi.mock('leaflet', async (importOriginal) => {
@@ -16,8 +16,8 @@ vi.mock('leaflet', async (importOriginal) => {
 	};
 });
 
-vi.mock('../../data/maps', async (importOriginal) => {
-	const data = await importOriginal<typeof import('../../data/maps')>();
+vi.mock('../../../data/maps', async (importOriginal) => {
+	const data = await importOriginal<typeof import('../../../data/maps')>();
 	return {
 		...data,
 		buildingMaps: data.buildingMaps.map((building) =>

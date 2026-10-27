@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it } from 'vitest';
-import { getSvgOutlineAnchor, getSvgOutlinePoints } from './svgOutline';
+import { getSvgOutlineAnchor, getSvgOutlinePoints } from '../svgOutline';
 
 let svg: SVGSVGElement;
 function makeOutline() {
