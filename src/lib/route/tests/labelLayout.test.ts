@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { layoutRouteLabels } from './labelLayout';
-import type { LabelBounds, RouteLabel } from './labelLayout';
+import { layoutRouteLabels } from '../labelLayout';
+import type { LabelBounds, RouteLabel } from '../labelLayout';
 
 function intersects(a: LabelBounds, b: LabelBounds): boolean {
 	return a.x < b.x + b.width && a.x + a.width > b.x && a.y < b.y + b.height && a.y + a.height > b.y;

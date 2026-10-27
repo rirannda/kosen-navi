@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { layoutFloorControls, MAX_FLOOR_CONTROL_LINE_LENGTH } from './floorControlLayout';
-import type { FloorControlBuilding, FloorControlSide } from './floorControlLayout';
-import type { LabelBounds } from '../route/labelLayout';
+import { layoutFloorControls, MAX_FLOOR_CONTROL_LINE_LENGTH } from '../floorControlLayout';
+import type { FloorControlBuilding, FloorControlSide } from '../floorControlLayout';
+import type { LabelBounds } from '../../route/labelLayout';
 
 function intersects(a: LabelBounds, b: LabelBounds): boolean {
 	return a.x < b.x + b.width && a.x + a.width > b.x && a.y < b.y + b.height && a.y + a.height > b.y;

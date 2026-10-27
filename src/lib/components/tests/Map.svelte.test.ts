@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { render } from 'vitest-browser-svelte';
-import Map from './Map.svelte';
-import type { Poi } from '../../data/types';
+import Map from '../Map.svelte';
+import type { Poi } from '../../../data/types';
 
 function svgForUrl(url: string): string {
 	const contents = url.endsWith('la-bldg_F1.svg')

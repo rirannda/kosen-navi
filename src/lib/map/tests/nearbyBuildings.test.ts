@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { buildingMaps } from '../../data/maps';
-import { getNearbyBuildings } from './nearbyBuildings';
+import { buildingMaps } from '../../../data/maps';
+import { getNearbyBuildings } from '../nearbyBuildings';
 
 describe('getNearbyBuildings', () => {
 	it('中心付近に1棟しかなければ離れた2棟目を追加しない', () => {

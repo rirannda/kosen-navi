@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import type { Node } from '../../data/types';
-import { getRouteDisplay } from './routeDisplay';
+import type { Node } from '../../../data/types';
+import { getRouteDisplay } from '../routeDisplay';
 
 function node(id: string, floor: number, x = 0, y = 0, buildingId?: string): Node {
 	return { id, floor, x, y, buildingId };

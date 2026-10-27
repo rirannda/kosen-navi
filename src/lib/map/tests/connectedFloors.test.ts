@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import type { Edge, Node } from '../../data/types';
-import { nodes } from '../../data/nodes';
-import { edges } from '../../data/edges';
-import { edgeStairs } from '../../data/edge_stair';
-import { createConnectedFloorLookup } from './connectedFloors';
+import type { Edge, Node } from '../../../data/types';
+import { nodes } from '../../../data/nodes';
+import { edges } from '../../../data/edges';
+import { edgeStairs } from '../../../data/edge_stair';
+import { createConnectedFloorLookup } from '../connectedFloors';
 
 const node = (id: string, buildingId: string, floor: number): Node => ({
 	id,

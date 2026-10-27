@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import type { BuildingMap } from '../../data/maps';
-import { buildingMaps } from '../../data/maps';
-import { nodes } from '../../data/nodes';
-import { edges } from '../../data/edges';
-import { edgeStairs } from '../../data/edge_stair';
-import { createConnectedFloorLookup } from './connectedFloors';
-import { createBuildingConnections, getFocusedBuildings } from './focusedBuildings';
+import type { BuildingMap } from '../../../data/maps';
+import { buildingMaps } from '../../../data/maps';
+import { nodes } from '../../../data/nodes';
+import { edges } from '../../../data/edges';
+import { edgeStairs } from '../../../data/edge_stair';
+import { createConnectedFloorLookup } from '../connectedFloors';
+import { createBuildingConnections, getFocusedBuildings } from '../focusedBuildings';
 
 const building = (id: string, bounds: BuildingMap['bounds']): BuildingMap => ({
 	id,

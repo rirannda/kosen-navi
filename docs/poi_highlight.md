@@ -1,6 +1,37 @@
 # POIのハイライト
 
+新規の利用側では、親でナビゲーション状態を生成し、検索・地図・詳細表示で同じインスタンスを共有します。
+
+```svelte
+<script lang="ts">
+	import Map from '#lib/components/Map.svelte';
+	import { createNavigationState } from '#lib';
+
+	const navigation = createNavigationState();
+	let mapComponent: { focusOnPoiId: (poiId: string) => void } | undefined;
+</script>
+
+<Map {navigation} bind:this={mapComponent} />
+<p>選択中: {navigation.selectedPoi?.name ?? '未選択'}</p>
+<button onclick={() => navigation.setHighlight('poi_hr_1-1')}>1-1HRを選択</button>
+<button onclick={() => mapComponent?.focusOnPoiId('poi_hr_1-1')}>1-1HRへ移動</button>
+<button onclick={() => navigation.clearHighlight('selected')}>選択を解除</button>
+```
+
+`setHighlight(poiId, role = 'selected')` はPOIとノードの存在を検証し、受理時に`true`を返します。
+SVG要素の存在・読み込み完了を保証する戻り値ではありません。カメラ移動は別操作です。
+`selectedPoi`は`selected`枠から導出し、地図上のタップも同じ共有状態を更新します。
+状態はメソッドで更新し、`highlights`・`routePath`は読み取り専用として扱います。
+
+`navigation.showRoute(startNodeId, goalNodeId)`と`navigation.clearRoute()`で経路を変更できます。
+経路にはnode ID、ハイライトにはPOI IDを使います。経路と役割別ハイライトは独立しています。
+初期化前の状態は読み込み完了時に反映し、地図を破棄しても親の状態は解除しません。
+同じ地図の存続中は同じモデルを渡し、別の地図・ページには別のインスタンスを生成します。
+
+## 既存のコンポーネントAPI
+
 `Map.svelte` のコンポーネント参照から、POI IDを指定して呼び出します。
+`navigation`を省略した場合は、その地図専用のモデルを生成します。
 
 ```svelte
 <script lang="ts">
@@ -71,8 +102,8 @@ POIが紐づいていない図形や別の階にある同名のSVGでは選択�
 
 戻り値は表示を受け付けた場合に `true`、色名・POI・ノード・対応するSVG要素が見つからない場合に
 `false` です。失敗時は現在のハイライトを維持します。地図の初期化前は枠ごとに
-最新の呼び出しを予約して `true` を返し、SVGの読み込み後に表示します。
-予約も同じ枠ごとの制限を適用し、`clearPoiHighlight()` で解除できます。
+最新の呼び出しを共有状態に保存して `true` を返し、SVGの読み込み後に表示・移動します。
+予約も同じ枠ごとの制限を適用し、`clearPoiHighlight()`または親モデルの`clearHighlight()`で解除できます。
 
 `showRoute(startId, goalId)` はスタート地点に緑の `S` マーク、ゴール地点に赤の旗を表示します。
 マークは各地点の階で表示され、経路を再表示・解除した際は古いマークも解除されます。

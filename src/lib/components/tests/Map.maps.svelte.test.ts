@@ -2,9 +2,9 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { page } from 'vitest/browser';
 import { render } from 'vitest-browser-svelte';
 import type * as LType from 'leaflet';
-import Map from './Map.svelte';
-import { baseMapFiles, buildingMaps } from '../../data/maps';
-import { MAX_FLOOR_CONTROL_LINE_LENGTH } from '../map/floorControlLayout';
+import Map from '../Map.svelte';
+import { baseMapFiles, buildingMaps } from '../../../data/maps';
+import { MAX_FLOOR_CONTROL_LINE_LENGTH } from '../../map/floorControlLayout';
 
 const MAX_FOCUSED_BUILDINGS = 6;
 
