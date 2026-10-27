@@ -8,6 +8,7 @@ import type { Node, Poi, EnhancedEdge } from '../../data/types';
 import type { HighlightColor } from '../map/highlightColors';
 import { highlightRoles } from '../map/highlightColors';
 import { SvelteMap } from 'svelte/reactivity';
+import { getContext, hasContext, setContext } from 'svelte';
 
 export type PoiHighlights = Readonly<Partial<Record<HighlightColor, string>>>;
 export type NavigationData = {
@@ -23,6 +24,7 @@ export function createNavigationState(data?: NavigationData) {
 	const nodeById = new SvelteMap(graph.nodes.map((node) => [node.id, node]));
 	let highlights = $state.raw<PoiHighlights>({});
 	let routePath = $state.raw<readonly string[] | null>(null);
+	let focusRequest = $state.raw<{ poiId: string } | null>(null);
 
 	function resolvePoi(poiId: string): { poi: Poi; node: Node } | undefined {
 		const poi = poiById.get(poiId);
@@ -61,11 +63,18 @@ export function createNavigationState(data?: NavigationData) {
 		setHighlight,
 		clearHighlight,
 		showRoute,
+		/** 描画側にPOIへのカメラ移動を依頼します。同じPOIでも毎回新しい要求になります。 */
+		requestFocus: (poiId: string) => {
+			focusRequest = { poiId };
+		},
 		clearRoute: () => {
 			routePath = null;
 		},
 		get highlights() {
 			return highlights;
+		},
+		get focusRequest() {
+			return focusRequest;
 		},
 		get routePath() {
 			return routePath;
@@ -77,3 +86,21 @@ export function createNavigationState(data?: NavigationData) {
 }
 
 export type NavigationState = ReturnType<typeof createNavigationState>;
+
+const navigationKey = Symbol('navigation');
+
+/** ページ配下のコンポーネントがpropsなしで共有できるよう、状態をcontextへ登録します。 */
+export function provideNavigation(navigation = createNavigationState()): NavigationState {
+	setContext(navigationKey, navigation);
+	return navigation;
+}
+
+export function getNavigation(): NavigationState | undefined {
+	return hasContext(navigationKey) ? getContext<NavigationState>(navigationKey) : undefined;
+}
+
+export function requireNavigation(): NavigationState {
+	const navigation = getNavigation();
+	if (!navigation) throw new Error('provideNavigation()で共有状態を登録してください');
+	return navigation;
+}
