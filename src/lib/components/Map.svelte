@@ -7,7 +7,7 @@
 	import type { Poi } from '../../data/types';
 	import { baseMapFiles, buildingMaps } from '../../data/maps';
 	import type { BuildingMap } from '../../data/maps';
-	import { createNavigationState } from '../states/navigation.svelte';
+	import { createNavigationState, getNavigation } from '../states/navigation.svelte';
 	import type { NavigationState, PoiHighlights } from '../states/navigation.svelte';
 	import { highlightColors, highlightRoles } from '../map/highlightColors';
 	import type { HighlightColor } from '../map/highlightColors';
@@ -27,7 +27,7 @@
 	import BuildingFloorControls from './BuildingFloorControls.svelte';
 
 	let {
-		navigation = createNavigationState(),
+		navigation = getNavigation() ?? createNavigationState(),
 		selectedPoi = $bindable<Poi | null>(null)
 	}: {
 		navigation?: NavigationState;
@@ -92,6 +92,11 @@
 		untrack(() => {
 			if (ready) renderNavigation(path, highlights);
 		});
+	});
+
+	$effect(() => {
+		const request = navigation.focusRequest;
+		if (request) untrack(() => focusOnPoiId(request.poiId));
 	});
 
 	function renderNavigation(path = navigation.routePath, highlights = navigation.highlights) {

@@ -4,18 +4,32 @@
 	let {
 		results,
 		onselect,
-		activeIndex = -1
-	}: { results: Poi[]; onselect: (poi: Poi) => void; activeIndex?: number } = $props();
+		activeIndex = -1,
+		listboxId,
+		optionId
+	}: {
+		results: Poi[];
+		onselect: (poi: Poi) => void;
+		activeIndex?: number;
+		listboxId: string;
+		optionId: (i: number) => string;
+	} = $props();
+
+	$effect(() => {
+		if (activeIndex >= 0) {
+			document.getElementById(optionId(activeIndex))?.scrollIntoView({ block: 'nearest' });
+		}
+	});
 </script>
 
 {#if results.length > 0}
 	<ul
-		id="search-listbox"
+		id={listboxId}
 		class="max-h-[calc(12.5rem+2px)] overflow-y-auto rounded-b border border-gray-300 bg-white"
 		role="listbox"
 	>
 		{#each results as poi, i (poi.id)}
-			<li id="search-option-{i}" role="option" aria-selected={i === activeIndex}>
+			<li id={optionId(i)} role="option" aria-selected={i === activeIndex}>
 				<button
 					type="button"
 					tabindex="-1"
