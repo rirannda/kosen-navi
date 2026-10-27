@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { SvelteSet } from 'svelte/reactivity';
+	import { SvelteMap, SvelteSet } from 'svelte/reactivity';
 	import 'leaflet/dist/leaflet.css';
 	import type * as LType from 'leaflet';
 	import { aStar } from '../aStar/aStar';
@@ -9,7 +9,12 @@
 	import { layoutRouteLabels } from '../route/labelLayout';
 	import type { LabelBounds } from '../route/labelLayout';
 	import { highlightColors } from '../map/highlightColors';
-	import { getNearbyBuildings } from '../map/nearbyBuildings';
+	import { getVisibleBuildings } from '../map/visibleBuildings';
+	import { layoutFloorControls } from '../map/floorControlLayout';
+	import { getSvgOutlinePoints } from '../map/svgOutline';
+	import { createBuildingConnections, getFocusedBuildings } from '../map/focusedBuildings';
+	import type { BuildingFocusPoint } from '../map/focusedBuildings';
+	import type { FloorControlBuilding, FloorControlPlacement } from '../map/floorControlLayout';
 	import { createConnectedFloorLookup } from '../map/connectedFloors';
 	import type { HighlightColor } from '../map/highlightColors';
 	import type { Node as MapNode, Poi } from '../../data/types';
@@ -22,8 +27,24 @@
 
 	const graph = buildGraph(nodes, edges, edgeStairs);
 	const getConnectedFloor = createConnectedFloorLookup(graph.nodes, graph.edges);
+	const buildingConnections = createBuildingConnections(buildingMaps, getConnectedFloor);
 	const highlightRoles = ['start', 'goal', 'selected'] as const;
-	const buildingOutlinePalette = ['#2563eb', '#ea580c'] as const;
+	const SHOW_UI_ZOOM_THRESHOLD = 0;
+	// CSSピクセル単位。ズームしても画面端の除外幅は変えません。
+	const FLOOR_DISPLAY_EDGE_MARGIN = 48;
+	const buildingOutlinePalette = [
+		'#2563eb',
+		'#ea580c',
+		'#0f766e',
+		'#7c3aed',
+		'#be123c',
+		'#0369a1',
+		'#a16207',
+		'#4d7c0f',
+		'#9333ea',
+		'#b45309',
+		'#475569'
+	] as const;
 	type PoiHighlight = { poi: Poi; layer: LType.SVGOverlay; element: SVGGraphicsElement };
 	type PoiHighlightDisplay = PoiHighlight & { color: HighlightColor; tooltip: LType.Tooltip };
 	type RouteLabelDisplay = {
@@ -51,10 +72,15 @@
 	const svgElementsByLayer = new WeakMap<LType.SVGOverlay, SVGElement>();
 	const poiSelectionCleanups: (() => void)[] = [];
 
-	let showBldgMenu = $state(false);
+	let buildingControlsContainer = $state<HTMLDivElement>();
+	let buildingControlFrame: number | undefined;
+	let buildingControlPositions = $state<Record<string, FloorControlPlacement>>({});
 	let zoomedBldg = $state('');
 	let activeFloor = $state(1);
 	let visibleBuildings = $state<BuildingMap[]>([]);
+	const switchableBuildings = $derived(
+		visibleBuildings.filter((building) => Object.keys(building.floors).length > 1)
+	);
 	let activeFloors = $state<Record<string, number>>({});
 	let buildingOutlineColors = $state<Record<string, string>>({});
 	const buildingFloorLayers: Record<string, Partial<Record<number, LType.SVGOverlay>>> = {};
@@ -86,6 +112,7 @@
 			tooltip.setLatLng(location);
 			if (!map.hasLayer(tooltip)) tooltip.addTo(map);
 		}
+		scheduleBuildingControls();
 		scheduleRouteLabels();
 	}
 
@@ -190,7 +217,6 @@
 		poiHighlights[color] = { poi, layer, element };
 		if (color === 'selected') selectedPoi = poi;
 		if (buildingId !== 'outdoor') switchFloor(buildingId, node.floor);
-		if (!map.hasLayer(layer)) layer.addTo(map);
 		updatePoiHighlights();
 		if (focus) focusOnLocation(node.x, node.y, 1);
 		return true;
@@ -246,6 +272,91 @@
 			layer.off('click', onClick);
 			svg.removeEventListener('keydown', onKeyDown);
 		});
+	}
+
+	function observeBuildingControl(element: HTMLElement) {
+		const observer = new ResizeObserver(scheduleBuildingControls);
+		observer.observe(element);
+		return { destroy: () => observer.disconnect() };
+	}
+
+	function scheduleBuildingControls() {
+		if (!map || !svgLayersReady || buildingControlFrame !== undefined) return;
+		buildingControlFrame = requestAnimationFrame(() => {
+			buildingControlFrame = undefined;
+			updateBuildingControls();
+		});
+	}
+
+	function updateBuildingControls() {
+		if (!map || !buildingControlsContainer) return;
+		const size = map.getSize();
+		const containerRect = mapContainer.getBoundingClientRect();
+		const obstacles: LabelBounds[] = Array.from(
+			mapContainer.querySelectorAll('.leaflet-control-zoom, .poi-name-tooltip')
+		).map((element) => {
+			const rect = element.getBoundingClientRect();
+			return {
+				x: rect.left - containerRect.left,
+				y: rect.top - containerRect.top,
+				width: rect.width,
+				height: rect.height
+			};
+		});
+		const buildings: FloorControlBuilding[] = buildingMaps.map((building) => {
+			const [left, top, right, bottom] = building.bounds;
+			const northWest = map.latLngToContainerPoint([1700 - top, left]);
+			const southEast = map.latLngToContainerPoint([1700 - bottom, right]);
+			const layer = buildingFloorLayers[building.id]?.[activeFloors[building.id]];
+			const outline =
+				layer && visibleFloorLayers.has(layer)
+					? svgElementsByLayer.get(layer)?.querySelector('[id$="_flame"]')
+					: undefined;
+			const matrix = outline instanceof SVGGeometryElement ? outline.getScreenCTM() : null;
+			const points =
+				outline instanceof SVGGeometryElement && matrix
+					? getSvgOutlinePoints(outline).map((point) => ({
+							x: matrix.a * point.x + matrix.c * point.y + matrix.e - containerRect.left,
+							y: matrix.b * point.x + matrix.d * point.y + matrix.f - containerRect.top
+						}))
+					: [];
+			const visiblePoints = points.filter(
+				({ x, y }) => x >= 0 && x <= size.x && y >= 0 && y <= size.y
+			);
+			return {
+				id: building.id,
+				x: northWest.x,
+				y: northWest.y,
+				width: southEast.x - northWest.x,
+				height: southEast.y - northWest.y,
+				outline: visiblePoints.length ? visiblePoints : points
+			};
+		});
+		const controls = switchableBuildings.flatMap(({ id }) => {
+			const panel = buildingControlsContainer!.querySelector<HTMLElement>(
+				`[data-building="${id}"]`
+			);
+			return panel
+				? [
+						{
+							id,
+							width: panel.offsetWidth,
+							height: panel.offsetHeight,
+							previousSide: buildingControlPositions[id]?.side
+						}
+					]
+				: [];
+		});
+		const positions = layoutFloorControls(
+			controls,
+			buildings,
+			{ width: size.x, height: size.y },
+			obstacles
+		);
+		buildingControlPositions = Object.fromEntries(
+			positions.map((position) => [position.id, position])
+		);
+		scheduleRouteLabels();
 	}
 
 	function scheduleRouteLabels() {
@@ -341,8 +452,12 @@
 
 	function updateVisibleRoute() {
 		if (!map) return;
-		const isVisible = (layer: LType.Layer, floor: number) =>
-			(activeFloors[routeBuildingByLayer.get(layer) ?? ''] ?? activeFloor) === floor;
+		const isVisible = (layer: LType.Layer, floor: number) => {
+			const buildingId = routeBuildingByLayer.get(layer) ?? '';
+			return buildingId === 'outdoor'
+				? floor === 0
+				: (activeFloors[buildingId] ?? activeFloor) === floor;
+		};
 
 		for (const [floor, layers] of Object.entries(routeLayersByFloor)) {
 			for (const layer of layers ?? []) {
@@ -619,18 +734,58 @@
 	}
 
 	function synchronizeVisibleFloors(buildingId: string) {
-		if (visibleBuildings.length !== 2 || !visibleBuildings.some(({ id }) => id === buildingId))
-			return;
-		const target = visibleBuildings.find(({ id }) => id !== buildingId)!;
-		const connectedFloor = getConnectedFloor(
-			buildingId,
-			activeFloors[buildingId],
-			target.id,
-			activeFloors[target.id]
-		);
-		if (connectedFloor !== undefined && buildingFloorLayers[target.id]?.[connectedFloor]) {
-			activeFloors[target.id] = connectedFloor;
+		if (!visibleBuildings.some(({ id }) => id === buildingId)) return;
+		const visited = new SvelteSet([buildingId]);
+		const pending = [buildingId];
+		// 表示中の接続先だけを辿り、同じ建物を循環して上書きしないようにします。
+		for (let index = 0; index < pending.length; index++) {
+			const sourceId = pending[index];
+			for (const target of visibleBuildings) {
+				if (visited.has(target.id)) continue;
+				const connectedFloor = getConnectedFloor(
+					sourceId,
+					activeFloors[sourceId],
+					target.id,
+					activeFloors[target.id]
+				);
+				if (connectedFloor === undefined || !buildingFloorLayers[target.id]?.[connectedFloor])
+					continue;
+				activeFloors[target.id] = connectedFloor;
+				visited.add(target.id);
+				pending.push(target.id);
+			}
 		}
+	}
+
+	function getViewportBuildings(): BuildingMap[] {
+		if (map.getZoom() < SHOW_UI_ZOOM_THRESHOLD) return [];
+		const size = map.getSize();
+		const margin = FLOOR_DISPLAY_EDGE_MARGIN;
+		if (size.x <= margin * 2 || size.y <= margin * 2) return [];
+		const northWest = map.containerPointToLatLng([margin, margin]);
+		const southEast = map.containerPointToLatLng([size.x - margin, size.y - margin]);
+		const candidates = getVisibleBuildings(buildingMaps, [
+			northWest.lng,
+			1700 - northWest.lat,
+			southEast.lng,
+			1700 - southEast.lat
+		]);
+		const outlines = new SvelteMap<string, readonly BuildingFocusPoint[]>();
+		for (const { id } of candidates) {
+			const floor = activeFloors[id] ?? getAvailableFloor(id, activeFloor);
+			const layer = buildingFloorLayers[id]?.[floor];
+			const outline = layer
+				? svgElementsByLayer.get(layer)?.querySelector('[id$="_flame"]')
+				: undefined;
+			if (outline instanceof SVGGeometryElement) outlines.set(id, getSvgOutlinePoints(outline));
+		}
+		const center = map.getCenter();
+		return getFocusedBuildings(
+			candidates,
+			{ x: center.lng, y: 1700 - center.lat },
+			buildingConnections,
+			outlines
+		);
 	}
 
 	function getAvailableFloor(buildingId: string, preferredFloor: number): number {
@@ -657,11 +812,17 @@
 			const color =
 				previousColor && !usedColors.includes(previousColor)
 					? previousColor
-					: buildingOutlinePalette.find((candidate) => !usedColors.includes(candidate))!;
+					: (buildingOutlinePalette.find((candidate) => !usedColors.includes(candidate)) ??
+						`hsl(${buildingMaps.findIndex((building) => building.id === id) * 137.5} 65% 40%)`);
 			buildingOutlineColors[id] = color;
 			usedColors.push(color);
 		}
-		visibleBuildings = buildings;
+		if (
+			buildings.length !== visibleBuildings.length ||
+			buildings.some((building, index) => building.id !== visibleBuildings[index]?.id)
+		) {
+			visibleBuildings = buildings;
+		}
 		for (const { id } of buildings) {
 			if (activeFloors[id] === undefined) {
 				activeFloors[id] = getAvailableFloor(id, activeFloor);
@@ -670,7 +831,7 @@
 		if (!buildings.some(({ id }) => id === zoomedBldg)) zoomedBldg = buildings[0]?.id ?? '';
 		synchronizeVisibleFloors(zoomedBldg);
 		if (zoomedBldg) activeFloor = activeFloors[zoomedBldg];
-		showBldgMenu = buildings.length > 0;
+		scheduleBuildingControls();
 	}
 
 	function switchFloor(buildingId: string, floor: number) {
@@ -681,13 +842,11 @@
 		activeFloor = getAvailableFloor(buildingId, floor);
 		if (layers) {
 			activeFloors[buildingId] = activeFloor;
-			if (!visibleBuildings.some(({ id }) => id === buildingId)) {
-				const building = buildingMaps.find(({ id }) => id === buildingId)!;
-				const [left, top, right, bottom] = building.bounds;
-				const nearby = getNearbyBuildings(buildingMaps, (left + right) / 2, (top + bottom) / 2);
-				setVisibleBuildings(
-					[building, ...nearby.filter(({ id }) => id !== buildingId)].slice(0, 2)
-				);
+			if (map.getZoom() < SHOW_UI_ZOOM_THRESHOLD) {
+				setVisibleBuildings([]);
+			} else if (!visibleBuildings.some(({ id }) => id === buildingId)) {
+				// POIへの移動途中も表示上限を保ち、対象が中心へ入った時点で表示します。
+				setVisibleBuildings(getViewportBuildings());
 			} else {
 				synchronizeVisibleFloors(buildingId);
 			}
@@ -766,7 +925,6 @@
 			] as const) {
 				map.createPane(name).style.zIndex = String(zIndex);
 			}
-			const SHOW_UI_ZOOM_THRESHOLD = 0;
 
 			try {
 				const mapFiles = [
@@ -822,18 +980,13 @@
 
 				const updateMapState = () => {
 					if (disposed) return;
-					const center = map.getCenter();
-					setVisibleBuildings(
-						map.getZoom() >= SHOW_UI_ZOOM_THRESHOLD
-							? getNearbyBuildings(buildingMaps, center.lng, 1700 - center.lat)
-							: []
-					);
+					setVisibleBuildings(getViewportBuildings());
 					updateVisibleFloor();
 					updateVisibleRoute();
 					updateVisiblePoi();
 				};
 
-				map.on('zoomend moveend', updateMapState);
+				map.on('move zoom resize zoomend moveend', updateMapState);
 				map.on('move zoom resize tooltipopen tooltipclose', scheduleRouteLabels);
 				map.fitBounds(bounds);
 				updateMapState();
@@ -851,6 +1004,8 @@
 
 		return () => {
 			disposed = true;
+			svgLayersReady = false;
+			if (buildingControlFrame !== undefined) cancelAnimationFrame(buildingControlFrame);
 			clearRoute();
 			clearPoiHighlight();
 			for (const cleanup of poiSelectionCleanups) cleanup();
@@ -871,13 +1026,35 @@
 <div class="map-wrapper">
 	<div bind:this={mapContainer} class="map-container"></div>
 
-	{#if showBldgMenu}
-		<div class="building-controls">
-			{#each visibleBuildings as building (building.id)}
+	{#if switchableBuildings.length}
+		<div class="building-controls" bind:this={buildingControlsContainer}>
+			<svg class="building-control-connectors" aria-hidden="true">
+				{#each switchableBuildings as building (building.id)}
+					{@const position = buildingControlPositions[building.id]}
+					{#if position}
+						<g style:--building-outline-color={buildingOutlineColors[building.id]}>
+							<line
+								data-connector={building.id}
+								x1={position.anchorX}
+								y1={position.anchorY}
+								x2={position.lineX}
+								y2={position.lineY}
+							/>
+							<circle cx={position.anchorX} cy={position.anchorY} r="3" />
+						</g>
+					{/if}
+				{/each}
+			</svg>
+			{#each switchableBuildings as building (building.id)}
+				{@const position = buildingControlPositions[building.id]}
 				<section
 					class="custom-control-panel"
+					use:observeBuildingControl
+					style:transform={`translate(${position?.x ?? 0}px, ${position?.y ?? 0}px)`}
+					style:visibility={position ? 'visible' : 'hidden'}
 					style:--building-outline-color={buildingOutlineColors[building.id]}
 					data-building={building.id}
+					data-snap={position?.side}
 					aria-label={`${building.name}の階`}
 				>
 					<h3>{building.name}</h3>
@@ -1048,9 +1225,10 @@
 
 	.map-wrapper {
 		position: relative;
+		isolation: isolate;
 		width: 100%;
-		height: 600px;
-		border-radius: 8px;
+		height: 100vh;
+		height: 100dvh;
 		overflow: hidden;
 	}
 
@@ -1063,47 +1241,68 @@
 
 	.building-controls {
 		position: absolute;
-		bottom: 20px;
-		left: 20px;
+		inset: 0;
 		z-index: 1000;
-		display: flex;
-		flex-direction: column;
-		align-items: flex-end;
-		gap: 12px;
-		max-width: calc(100% - 40px);
+		pointer-events: none;
+	}
+
+	.building-control-connectors {
+		position: absolute;
+		inset: 0;
+		width: 100%;
+		height: 100%;
+		overflow: hidden;
+	}
+
+	.building-control-connectors line {
+		stroke: var(--building-outline-color);
+		stroke-width: 1.5;
+		opacity: 0.8;
+	}
+
+	.building-control-connectors circle {
+		fill: var(--building-outline-color);
 	}
 
 	.custom-control-panel {
-		background: rgba(255, 255, 255, 0.95);
-		border-top: 4px solid var(--building-outline-color);
-		padding: 16px;
-		border-radius: 12px;
-		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-		backdrop-filter: blur(4px);
-		transition: opacity 0.3s ease;
+		position: absolute;
+		top: 0;
+		left: 0;
+		width: max-content;
+		max-width: min(180px, calc(100% - 16px));
+		background: rgba(255, 255, 255, 0.96);
+		border-top: 3px solid var(--building-outline-color);
+		padding: 8px;
+		border-radius: 10px;
+		box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
+		pointer-events: auto;
 	}
 
 	.custom-control-panel h3 {
-		margin: 0 0 12px 0;
-		font-size: 14px;
+		margin: 0 0 6px;
+		font-size: 12px;
+		line-height: 1.3;
 		color: var(--building-outline-color, #333);
 		text-align: center;
 	}
 
 	.floor-buttons {
 		display: flex;
-		flex-direction: column;
-		gap: 8px;
+		flex-wrap: wrap;
+		justify-content: center;
+		gap: 4px;
 	}
 
 	.floor-buttons button {
-		padding: 8px 18px;
+		min-width: 30px;
+		min-height: 30px;
+		padding: 4px 6px;
+		font-size: 12px;
 		border: 1px solid #ccc;
 		background: white;
-		border-radius: 6px;
+		border-radius: 5px;
 		cursor: pointer;
 		font-weight: bold;
-		transition: all 0.2s;
 	}
 
 	.floor-buttons button:hover {

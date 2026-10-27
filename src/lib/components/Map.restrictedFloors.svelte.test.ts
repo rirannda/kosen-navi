@@ -50,12 +50,10 @@ describe('Map restricted floors', () => {
 	it('2階だけの建物を初めて表示すると2階を選び、非公開階を表示・取得しない', async () => {
 		const { container, map, fetchMaps } = await renderRestrictedMap();
 		map.setView([616, 867.5], 2, { animate: false });
-		await expect
-			.poll(() =>
-				container.querySelector('[data-building="lib"] button.active')?.textContent?.trim()
-			)
-			.toBe('2F');
-		expect(container.querySelectorAll('[data-building="lib"] button').length).toBe(1);
+		await expect.poll(() => container.querySelector('[data-map="lib_F2.svg"]')).not.toBeNull();
+		expect(container.querySelector('[data-building="lib"]')).toBeNull();
+		expect(container.querySelector('[data-connector="lib"]')).toBeNull();
+		expect(container.querySelectorAll('[data-building="lib"] button').length).toBe(0);
 		expect(container.querySelector('[data-map="lib_F2.svg"]')).not.toBeNull();
 		expect(container.querySelector('[data-map="lib_F1.svg"]')).toBeNull();
 		expect(fetchMaps.mock.calls.some(([url]) => String(url).endsWith('lib_F1.svg'))).toBe(false);
@@ -69,27 +67,21 @@ describe('Map restricted floors', () => {
 			.click();
 		expect(container.querySelector('[data-map="ss-bldg_1_F4.svg"]')).not.toBeNull();
 		map.setView([616, 867.5], 2, { animate: false });
-		await expect
-			.poll(() =>
-				container.querySelector('[data-building="lib"] button.active')?.textContent?.trim()
-			)
-			.toBe('2F');
+		await expect.poll(() => container.querySelector('[data-map="lib_F2.svg"]')).not.toBeNull();
+		expect(container.querySelector('[data-building="lib"]')).toBeNull();
+		expect(container.querySelector('[data-connector="lib"]')).toBeNull();
 		expect(container.querySelector('[data-map="lib_F2.svg"]')).not.toBeNull();
 	});
 
 	it('非公開の1階への移動を指定されても登録済みの2階を表示する', async () => {
-		const { component, container, getByRole, map } = await renderRestrictedMap();
+		const { component, container, map } = await renderRestrictedMap();
 		map.setView([616, 867.5], 2, { animate: false });
-		await getByRole('region', { name: '図書館の階' })
-			.getByRole('button', { name: '2F', exact: true })
-			.click();
+		await expect.poll(() => container.querySelector('[data-map="lib_F2.svg"]')).not.toBeNull();
 		expect(container.querySelector('[data-map="lib_F2.svg"]')).not.toBeNull();
 		component.focusOnPoiId('poi_reading-room');
-		await expect
-			.poll(() =>
-				container.querySelector('[data-building="lib"] button.active')?.textContent?.trim()
-			)
-			.toBe('2F');
+		await expect.poll(() => container.querySelector('[data-map="lib_F2.svg"]')).not.toBeNull();
+		expect(container.querySelector('[data-building="lib"]')).toBeNull();
+		expect(container.querySelector('[data-connector="lib"]')).toBeNull();
 		expect(container.querySelector('[data-map="lib_F2.svg"]')).not.toBeNull();
 		expect(container.querySelector('[data-map="lib_F1.svg"]')).toBeNull();
 	});

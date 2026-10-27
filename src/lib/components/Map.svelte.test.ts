@@ -71,7 +71,8 @@ describe('Map POI selection', () => {
 		expect(component.highlightPoiById('poi_main-gate', 'goal')).toBe(true);
 		expect(selection.value?.id).toBe('poi_hr_1-1');
 		expect(container.querySelector('#main-gate')!.classList.contains('poi-color-goal')).toBe(true);
-		expect(container.querySelectorAll('.poi-highlight').length).toBe(2);
+		component.focusOnPoiId('poi_hr_1-1');
+		await expect.poll(() => container.querySelectorAll('.poi-highlight').length).toBe(2);
 	});
 
 	it('図形の内部やグループの子要素からPOIを選択し、親へ選択結果を渡す', async () => {
@@ -134,9 +135,15 @@ describe('Map POI selection', () => {
 		await expect.poll(() => container.querySelector('.leaflet-overlay-pane svg')).not.toBeNull();
 		expect(component.highlightPoiById('poi_hr_1-1')).toBe(true);
 		await expect
-			.poll(() => container.querySelector('.floor-buttons button.active')?.textContent?.trim(), {
-				timeout: 3000
-			})
+			.poll(
+				() =>
+					container
+						.querySelector('[data-building="la"] .floor-buttons button.active')
+						?.textContent?.trim(),
+				{
+					timeout: 3000
+				}
+			)
 			.toBe('1F');
 		await getByRole('region', { name: '教養棟の階' })
 			.getByRole('button', { name: '2F', exact: true })
@@ -146,7 +153,9 @@ describe('Map POI selection', () => {
 		for (const shape of shapes) shape.dispatchEvent(new MouseEvent('click', { bubbles: true }));
 		expect(selection.value?.id).toBe('poi_hr_1-1');
 		expect(container.querySelector('.poi-highlight')).toBeNull();
-		await getByRole('button', { name: '3F', exact: true }).click();
+		await getByRole('region', { name: '教養棟の階' })
+			.getByRole('button', { name: '3F', exact: true })
+			.click();
 		component.focusOnPoiId('poi_lab-a-phys');
 		await expect
 			.poll(() => container.querySelector('.leaflet-zoom-anim, .leaflet-pan-anim'), {
@@ -179,7 +188,7 @@ describe('Map POI highlight', () => {
 		expect(component.highlightPoiById('poi_hr_1-2', 'goal')).toBe(true);
 		expect(selection.value).toBeNull();
 		expect(component.highlightPoiById('poi_hr_1-3', 'selected')).toBe(true);
-		expect(container.querySelectorAll('.poi-highlight').length).toBe(3);
+		await expect.poll(() => container.querySelectorAll('.poi-highlight').length).toBe(3);
 		expect(getComputedStyle(container.querySelector('#hr_1-1.poi-selectable')!).fill).toBe(
 			'rgb(34, 197, 94)'
 		);
@@ -212,7 +221,7 @@ describe('Map POI highlight', () => {
 		expect(component.highlightPoiById('poi_hr_1-1', 'start')).toBe(true);
 		expect(component.highlightPoiById('poi_hr_1-1', 'goal')).toBe(true);
 		expect(component.highlightPoiById('poi_hr_1-1', 'selected')).toBe(true);
-		expect(container.querySelectorAll('.poi-highlight').length).toBe(1);
+		await expect.poll(() => container.querySelectorAll('.poi-highlight').length).toBe(1);
 		expect(container.querySelectorAll('.poi-name-tooltip').length).toBe(1);
 		expect(getComputedStyle(container.querySelector('.poi-highlight')!).fill).toBe(
 			'rgb(251, 191, 36)'
@@ -262,6 +271,7 @@ describe('Map POI highlight', () => {
 			['selected', 'rgb(251, 191, 36)']
 		] as const) {
 			expect(component.highlightPoiById('poi_hr_1-1', color)).toBe(true);
+			await expect.poll(() => container.querySelector('.poi-highlight')).not.toBeNull();
 			expect(getComputedStyle(container.querySelector('.poi-highlight')!).fill).toBe(expected);
 			expect(container.querySelectorAll('.poi-highlight').length).toBe(1);
 		}
@@ -287,9 +297,15 @@ describe('Map POI highlight', () => {
 		expect(component.highlightPoiById('poi_lab-a-phys')).toBe(true);
 		expect(firstRoom.classList.contains('poi-highlight')).toBe(false);
 		await expect
-			.poll(() => container.querySelector('.floor-buttons button.active')?.textContent?.trim(), {
-				timeout: 3000
-			})
+			.poll(
+				() =>
+					container
+						.querySelector('[data-building="la"] .floor-buttons button.active')
+						?.textContent?.trim(),
+				{
+					timeout: 3000
+				}
+			)
 			.toBe('3F');
 		await expect.poll(() => container.querySelectorAll('.poi-name-tooltip').length).toBe(1);
 		await expect
@@ -325,6 +341,7 @@ describe('Map POI highlight', () => {
 		const { component, container } = await render(Map);
 		await expect.poll(() => container.querySelector('.leaflet-overlay-pane svg')).not.toBeNull();
 		expect(component.highlightPoiById('poi_hr_1-1')).toBe(true);
+		await expect.poll(() => container.querySelector('.poi-highlight')?.id).toBe('hr_1-1');
 		expect(component.highlightPoiById('missing')).toBe(false);
 		expect(component.highlightPoiById('poi_po-chem')).toBe(false);
 		expect(component.highlightPoiById('poi_hr_1-1', 'unknown' as never)).toBe(false);
@@ -348,15 +365,23 @@ describe('Map POI highlight', () => {
 			'rgb(239, 68, 68)'
 		);
 		await expect
-			.poll(() => container.querySelector('.floor-buttons button.active')?.textContent?.trim(), {
-				timeout: 3000
-			})
+			.poll(
+				() =>
+					container
+						.querySelector('[data-building="la"] .floor-buttons button.active')
+						?.textContent?.trim(),
+				{
+					timeout: 3000
+				}
+			)
 			.toBe('3F');
 		await getByRole('region', { name: '教養棟の階' })
 			.getByRole('button', { name: '1F', exact: true })
 			.click();
 		await expect.poll(() => container.querySelector('.poi-name-tooltip')).toBeNull();
-		await getByRole('button', { name: '3F', exact: true }).click();
+		await getByRole('region', { name: '教養棟の階' })
+			.getByRole('button', { name: '3F', exact: true })
+			.click();
 		await expect
 			.poll(() => container.querySelector('.poi-name-tooltip')?.textContent)
 			.toBe('応用物理実験室');
@@ -394,11 +419,19 @@ describe('Map route endpoints', () => {
 				.backgroundColor
 		).toBe('rgb(21, 128, 61)');
 		await expect
-			.poll(() => container.querySelector('.floor-buttons button.active')?.textContent?.trim(), {
-				timeout: 3000
-			})
+			.poll(
+				() =>
+					container
+						.querySelector('[data-building="la"] .floor-buttons button.active')
+						?.textContent?.trim(),
+				{
+					timeout: 3000
+				}
+			)
 			.toBe('1F');
-		await getByRole('button', { name: '3F', exact: true }).click();
+		await getByRole('region', { name: '教養棟の階' })
+			.getByRole('button', { name: '3F', exact: true })
+			.click();
 		expect(container.querySelector('.route-endpoint-start')).toBeNull();
 		expect(container.querySelectorAll('.route-endpoint-goal').length).toBe(1);
 		expect(container.querySelector('.route-endpoint-goal svg')).not.toBeNull();
