@@ -12,7 +12,11 @@
 	import { highlightColors, highlightRoles } from '../map/highlightColors';
 	import type { HighlightColor } from '../map/highlightColors';
 	import { createConnectedFloorLookup } from '../map/connectedFloors';
-	import { createBuildingConnections, getFocusedBuildings } from '../map/focusedBuildings';
+	import {
+		createBuildingConnections,
+		DEFAULT_CENTER_FOCUS_RADIUS,
+		getFocusedBuildings
+	} from '../map/focusedBuildings';
 	import type { BuildingFocusPoint } from '../map/focusedBuildings';
 	import { getVisibleBuildings } from '../map/visibleBuildings';
 	import { createMapViewState } from '../map/state/view.svelte';
@@ -25,6 +29,8 @@
 	import type { FloorControlPlacement } from '../map/floorControlLayout';
 	import type { LabelBounds } from '../route/labelLayout';
 	import BuildingFloorControls from './BuildingFloorControls.svelte';
+	import BottomSheet from './BottomSheet.svelte';
+	import type { BottomSheetSnap } from './BottomSheet.svelte';
 
 	let {
 		navigation = createNavigationState(),
@@ -54,6 +60,13 @@
 	let buildingControlFrame: number | undefined;
 	let routeLabelFrame: number | undefined;
 	let buildingControlPositions = $state<Record<string, FloorControlPlacement>>({});
+	let bottomSheetSnap = $state<BottomSheetSnap>('bottom');
+	let bottomSheetHeight = $state(96);
+	let previousSheetSnap: BottomSheetSnap = 'bottom';
+	let previousSheetHeight = 96;
+	let sheetMapOffset = 48;
+	let adjustingSheet = false;
+	let focusingLocation = false;
 	const switchableBuildings = $derived(
 		view.visibleBuildings.filter((building) => Object.keys(building.floors).length > 1)
 	);
@@ -91,6 +104,28 @@
 		const ready = svgLayersReady;
 		untrack(() => {
 			if (ready) renderNavigation(path, highlights);
+		});
+	});
+	$effect(() => {
+		const snap = bottomSheetSnap;
+		const height = bottomSheetHeight;
+		const ready = svgLayersReady;
+		untrack(() => {
+			if (!ready || (height === previousSheetHeight && snap === previousSheetSnap)) return;
+			previousSheetHeight = height;
+			previousSheetSnap = snap;
+			// 見えている地図の中心を保ち、上の状態では中央以上に地図を動かしません。
+			const offset = Math.round(Math.min(height, map!.getSize().y / 2) / 2);
+			const movement = offset - sheetMapOffset;
+			sheetMapOffset = offset;
+			adjustingSheet = true;
+			try {
+				if (movement) map!.panBy([0, movement], { animate: false });
+				setVisibleBuildings(getViewportBuildings(height, snap), false);
+				updateDisplays();
+			} finally {
+				adjustingSheet = false;
+			}
 		});
 	});
 
@@ -192,9 +227,10 @@
 	function updateBuildingControls() {
 		if (!map || !svgLayers || !buildingControlsContainer) return;
 		const size = map.getSize();
+		const visibleHeight = Math.max(0, size.y - bottomSheetHeight);
 		const containerRect = mapContainer.getBoundingClientRect();
 		const obstacles: LabelBounds[] = Array.from(
-			mapContainer.querySelectorAll('.leaflet-control-zoom, .poi-name-tooltip')
+			mapContainer.querySelectorAll('.leaflet-control, .poi-name-tooltip')
 		).map((element) => {
 			const rect = element.getBoundingClientRect();
 			return {
@@ -209,7 +245,7 @@
 			const panel = buildingControlsContainer!.querySelector<HTMLElement>(
 				`[data-building="${id}"]`
 			);
-			return panel
+			return panel && panel.offsetHeight + 16 <= visibleHeight
 				? [
 						{
 							id,
@@ -223,7 +259,7 @@
 		const positions = layoutFloorControls(
 			controls,
 			buildings,
-			{ width: size.x, height: size.y },
+			{ width: size.x, height: visibleHeight },
 			obstacles
 		);
 		buildingControlPositions = Object.fromEntries(
@@ -232,13 +268,17 @@
 		scheduleRouteLabels();
 	}
 
-	function getViewportBuildings(): BuildingMap[] {
-		if (map!.getZoom() < SHOW_UI_ZOOM_THRESHOLD) return [];
+	function getViewportBuildings(
+		sheetHeight = bottomSheetHeight,
+		sheetSnap = bottomSheetSnap
+	): BuildingMap[] {
+		if (sheetSnap === 'top' || map!.getZoom() < SHOW_UI_ZOOM_THRESHOLD) return [];
 		const size = map!.getSize();
+		const visibleHeight = Math.max(0, size.y - sheetHeight);
 		const margin = FLOOR_DISPLAY_EDGE_MARGIN;
-		if (size.x <= margin * 2 || size.y <= margin * 2) return [];
+		if (size.x <= margin * 2 || visibleHeight <= margin * 2) return [];
 		const northWest = map!.containerPointToLatLng([margin, margin]);
-		const southEast = map!.containerPointToLatLng([size.x - margin, size.y - margin]);
+		const southEast = map!.containerPointToLatLng([size.x - margin, visibleHeight - margin]);
 		const candidates = getVisibleBuildings(buildingMaps, [
 			northWest.lng,
 			MAP_HEIGHT - northWest.lat,
@@ -251,17 +291,27 @@
 			const outline = svgLayers?.getOutline(id, floor);
 			if (outline instanceof SVGGeometryElement) outlines.set(id, getSvgOutlinePoints(outline));
 		}
-		const center = map!.getCenter();
+		const center = map!.containerPointToLatLng([size.x / 2, visibleHeight / 2]);
+		const viewportNorthWest = map!.containerPointToLatLng([0, 0]);
+		const viewportSouthEast = map!.containerPointToLatLng([size.x, visibleHeight]);
 		return getFocusedBuildings(
 			candidates,
 			{ x: center.lng, y: MAP_HEIGHT - center.lat },
 			buildingConnections,
-			outlines
+			outlines,
+			sheetSnap === 'middle' ? 4 : 6,
+			DEFAULT_CENTER_FOCUS_RADIUS / map!.getZoomScale(map!.getZoom(), 0),
+			[
+				viewportNorthWest.lng,
+				MAP_HEIGHT - viewportNorthWest.lat,
+				viewportSouthEast.lng,
+				MAP_HEIGHT - viewportSouthEast.lat
+			]
 		);
 	}
 
-	function setVisibleBuildings(buildings: BuildingMap[]) {
-		view.setVisibleBuildings(buildings);
+	function setVisibleBuildings(buildings: BuildingMap[], synchronizeSelection = true) {
+		view.setVisibleBuildings(buildings, synchronizeSelection);
 		scheduleBuildingControls();
 	}
 	function updateDisplays() {
@@ -273,8 +323,8 @@
 		scheduleRouteLabels();
 	}
 	function updateMapState() {
-		if (disposed || !svgLayersReady) return;
-		setVisibleBuildings(getViewportBuildings());
+		if (disposed || !svgLayersReady || adjustingSheet) return;
+		setVisibleBuildings(getViewportBuildings(), !focusingLocation);
 		updateDisplays();
 	}
 	function switchFloor(buildingId: string, floor: number) {
@@ -295,7 +345,15 @@
 			console.error('マップが初期化されていません');
 			return;
 		}
-		map.flyTo([y, x], zoom, { duration: 1 });
+		const targetZoom = Math.max(map.getMinZoom(), Math.min(map.getMaxZoom(), zoom));
+		const center = map.project([y, x], targetZoom).add([0, bottomSheetHeight / 2]);
+		map.off('moveend', finishLocationFocus);
+		focusingLocation = true;
+		map.flyTo(map.unproject(center, targetZoom), targetZoom, { duration: 1 });
+		map.once('moveend', finishLocationFocus);
+	}
+	function finishLocationFocus() {
+		focusingLocation = false;
 	}
 	export function focusOnPoiId(poiId: string) {
 		const target = navigation.resolvePoi(poiId);
@@ -340,7 +398,7 @@
 					() => view,
 					(node) => {
 						switchFloor(getNodeBuildingId(node) || view.zoomedBldg, node.floor);
-						focusOnLocation(node.x, node.y, mountedMap.getZoom());
+						focusOnLocation(node.x, node.y, Math.max(SHOW_UI_ZOOM_THRESHOLD, mountedMap.getZoom()));
 					}
 				);
 				poiLayer = createPoiLayer(
@@ -380,6 +438,7 @@
 			if (buildingControlFrame !== undefined) cancelAnimationFrame(buildingControlFrame);
 			if (routeLabelFrame !== undefined) cancelAnimationFrame(routeLabelFrame);
 			map?.off('move zoom resize zoomend moveend', updateMapState);
+			map?.off('moveend', finishLocationFocus);
 			map?.off('move zoom resize tooltipopen tooltipclose', scheduleRouteLabels);
 			poiLayer?.dispose();
 			routeLayer?.dispose();
@@ -394,7 +453,11 @@
 	});
 </script>
 
-<div class="map-wrapper">
+<div
+	class="map-wrapper"
+	class:sheet-expanded={bottomSheetSnap === 'top'}
+	style:--bottom-sheet-height={`${bottomSheetHeight}px`}
+>
 	<div bind:this={mapContainer} class="map-container"></div>
 	<BuildingFloorControls
 		buildings={switchableBuildings}
@@ -404,6 +467,10 @@
 		onfloorchange={switchFloor}
 		onresize={scheduleBuildingControls}
 		bind:container={buildingControlsContainer}
+	/>
+	<BottomSheet
+		bind:snap={bottomSheetSnap}
+		onheightchange={(height) => (bottomSheetHeight = height)}
 	/>
 </div>
 
@@ -421,5 +488,18 @@
 		height: 100%;
 		background-color: #f0f0f0;
 		z-index: 1;
+	}
+
+	.map-wrapper :global(.leaflet-bottom.leaflet-right) {
+		bottom: var(--bottom-sheet-height);
+	}
+
+	.map-wrapper :global(.leaflet-control-attribution) {
+		margin-right: 8px;
+	}
+
+	.sheet-expanded :global(.leaflet-control) {
+		visibility: hidden;
+		pointer-events: none;
 	}
 </style>

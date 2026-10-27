@@ -37,7 +37,7 @@ export function createMapViewState(
 		activeFloor = availableFloor(id, floor);
 		if (byId.has(id)) activeFloors[id] = activeFloor;
 	}
-	function setVisibleBuildings(buildings: BuildingMap[]) {
+	function setVisibleBuildings(buildings: BuildingMap[], synchronizeSelection = true) {
 		// 移動で近い順が変わっても、表示を続ける建物の色は維持します。
 		const retained = buildings.filter(({ id }) =>
 			visibleBuildings.some((building) => building.id === id)
@@ -66,7 +66,8 @@ export function createMapViewState(
 			}
 		}
 		if (!buildings.some(({ id }) => id === zoomedBldg)) zoomedBldg = buildings[0]?.id ?? '';
-		synchronize(zoomedBldg);
+		// シートの開閉による表示領域の変化では、各棟の選択済みの階を維持します。
+		if (synchronizeSelection) synchronize(zoomedBldg);
 		if (zoomedBldg) activeFloor = activeFloors[zoomedBldg];
 	}
 
