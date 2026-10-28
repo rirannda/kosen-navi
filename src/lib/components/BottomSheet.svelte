@@ -3,8 +3,8 @@
 </script>
 
 <script lang="ts">
-	import { onDestroy, untrack } from 'svelte';
 	import type { Snippet } from 'svelte';
+	import { onDestroy, untrack } from 'svelte';
 
 	let {
 		snap = $bindable<BottomSheetSnap>('bottom'),
@@ -18,7 +18,6 @@
 	} = $props();
 
 	const snaps: readonly BottomSheetSnap[] = ['bottom', 'middle', 'top'];
-	const snapLabels = { bottom: '下', middle: '中央', top: '上' };
 	const id = $props.id();
 	const contentId = `${id}-content`;
 	let availableHeight = $state(0);
@@ -126,42 +125,25 @@
 		}
 		snap = snaps[(snaps.indexOf(snap) + 1) % snaps.length];
 	}
-
-	function handleKeydown(event: KeyboardEvent) {
-		const index = snaps.indexOf(snap);
-		switch (event.key) {
-			case 'ArrowUp':
-				snap = snaps[Math.min(snaps.length - 1, index + 1)];
-				break;
-			case 'ArrowDown':
-				snap = snaps[Math.max(0, index - 1)];
-				break;
-			case 'Home':
-				snap = 'bottom';
-				break;
-			case 'End':
-				snap = 'top';
-				break;
-			default:
-				return;
-		}
-		event.preventDefault();
-	}
 </script>
 
-<div class="bottom-sheet-root" bind:clientHeight={availableHeight}>
+<div
+	class="bottom-sheet-root pointer-events-none absolute inset-x-0 top-[max(16px,env(safe-area-inset-top))] bottom-0 z-1200"
+	bind:clientHeight={availableHeight}
+>
 	<section
-		class="bottom-sheet"
-		class:dragging
+		class="bottom-sheet pointer-events-auto absolute inset-x-0 bottom-0 flex max-h-full flex-col overflow-hidden rounded-t-3xl bg-white shadow-[0_-3px_20px_rgb(0_0_0/15%)]"
 		style:height={`${height}px`}
 		data-snap={snap}
 		aria-label="ボトムシート"
 	>
 		<button
-			class="drag-handle"
+			class={[
+				'drag-handle flex w-full flex-[0_0_48px] touch-none items-center justify-center rounded-t-3xl border-0 bg-transparent p-0 select-none focus-visible:outline-2 focus-visible:outline-solid focus-visible:outline-[#2563eb] focus-visible:-outline-offset-4',
+				dragging ? 'cursor-grabbing' : 'cursor-grab'
+			]}
 			type="button"
 			aria-label="ボトムシートの高さを変更"
-			aria-describedby={`${id}-description`}
 			aria-controls={contentId}
 			aria-expanded={snap !== 'bottom'}
 			onpointerdown={startDrag}
@@ -170,88 +152,14 @@
 			onpointercancel={(event) => endDrag(event, true)}
 			onlostpointercapture={(event) => endDrag(event, true)}
 			onclick={cycleSnap}
-			onkeydown={handleKeydown}
 		>
-			<span aria-hidden="true"></span>
+			<span class="h-1 w-9 rounded-full bg-[#b8bdc5]" aria-hidden="true"></span>
 		</button>
-		<span class="sr-only" id={`${id}-description`}>
-			現在の位置: {snapLabels[snap]}。上下矢印キーでも変更できます。
-		</span>
-		<div class="sheet-content" id={contentId}>
+		<div
+			class="sheet-content min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 pt-0 pb-[max(16px,env(safe-area-inset-bottom))]"
+			id={contentId}
+		>
 			{@render children?.()}
 		</div>
 	</section>
 </div>
-
-<style>
-	.bottom-sheet-root {
-		position: absolute;
-		inset: max(16px, env(safe-area-inset-top)) 0 0;
-		z-index: 1200;
-		pointer-events: none;
-	}
-
-	.bottom-sheet {
-		position: absolute;
-		right: 0;
-		bottom: 0;
-		left: 0;
-		display: flex;
-		flex-direction: column;
-		max-height: 100%;
-		overflow: hidden;
-		border-radius: 24px 24px 0 0;
-		background: #fff;
-		box-shadow: 0 -3px 20px rgb(0 0 0 / 15%);
-		pointer-events: auto;
-	}
-
-	.drag-handle {
-		display: flex;
-		flex: 0 0 48px;
-		align-items: center;
-		justify-content: center;
-		width: 100%;
-		padding: 0;
-		border: 0;
-		border-radius: 24px 24px 0 0;
-		background: transparent;
-		cursor: grab;
-		touch-action: none;
-		user-select: none;
-		-webkit-user-select: none;
-	}
-
-	.drag-handle span {
-		width: 36px;
-		height: 4px;
-		border-radius: 999px;
-		background: #b8bdc5;
-	}
-
-	.drag-handle:focus-visible {
-		outline: 2px solid #2563eb;
-		outline-offset: -4px;
-	}
-
-	.dragging .drag-handle {
-		cursor: grabbing;
-	}
-
-	.sheet-content {
-		flex: 1;
-		min-height: 0;
-		overflow-y: auto;
-		overscroll-behavior: contain;
-		padding: 0 16px max(16px, env(safe-area-inset-bottom));
-	}
-
-	.sr-only {
-		position: absolute;
-		width: 1px;
-		height: 1px;
-		overflow: hidden;
-		clip-path: inset(50%);
-		white-space: nowrap;
-	}
-</style>
