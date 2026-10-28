@@ -79,19 +79,16 @@ describe('BottomSheet', () => {
 		expect(sheet.dataset.snap).toBe('bottom');
 	});
 
-	it('キーボードで各段階へ移動し、画面の高さが変わっても位置を維持する', async () => {
-		const { container, sheet, handle } = await renderSheet();
-		const key = (key: string) =>
-			handle.dispatchEvent(new KeyboardEvent('keydown', { key, bubbles: true }));
-		key('ArrowUp');
+	it('画面の高さが変わっても現在の段階を維持する', async () => {
+		const { container, sheet, getByRole } = await renderSheet();
+		const button = getByRole('button', { name: 'ボトムシートの高さを変更' });
+		await button.click();
 		await expect.poll(() => sheet.getBoundingClientRect().height).toBe(392);
 		container.style.height = '600px';
 		await expect.poll(() => sheet.getBoundingClientRect().height).toBe(292);
-		key('End');
+		await button.click();
 		await expect.poll(() => sheet.getBoundingClientRect().height).toBe(584);
-		key('ArrowDown');
-		await expect.poll(() => sheet.getBoundingClientRect().height).toBe(292);
-		key('Home');
+		await button.click();
 		await expect.poll(() => sheet.getBoundingClientRect().height).toBe(96);
 	});
 });

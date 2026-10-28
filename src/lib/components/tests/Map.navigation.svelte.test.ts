@@ -1,8 +1,9 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, expectTypeOf, it, vi } from 'vitest';
 import { render } from 'vitest-browser-svelte';
 import Map from '../Map.svelte';
 import { createNavigationState } from '../../states/navigation.svelte';
-import { pois } from '../../../data/pois';
+import type { ComponentProps } from 'svelte';
+import type { NavigationState } from '../../states/navigation.svelte';
 
 function mockMaps(ready: Promise<void> = Promise.resolve()) {
 	const signals: AbortSignal[] = [];
@@ -51,14 +52,27 @@ describe('Map shared navigation', () => {
 		expect(container.querySelector('.poi-color-start.poi-highlight')?.id).toBe('hr_1-1');
 	});
 
-	it('旧バインディングも親から変更・解除できる', async () => {
+	it('共有モデルを必須とし、地図の公開メソッドを移動操作に限定する', async () => {
 		mockMaps();
-		const { component, container, rerender } = await render(Map);
+		expectTypeOf<ComponentProps<typeof Map>>().toEqualTypeOf<{ navigation: NavigationState }>();
+		const navigation = createNavigationState();
+		const { component } = await render(Map, { props: { navigation } });
+		expect(component.focusOnPoiId).toBeTypeOf('function');
+		for (const name of ['highlightPoiById', 'clearPoiHighlight', 'showRoute', 'clearRoute']) {
+			expect(component).not.toHaveProperty(name);
+		}
+	});
+
+	it('SVG要素がないPOIも共有状態として受理し、描画結果とは区別する', async () => {
+		mockMaps();
+		const navigation = createNavigationState();
+		const { component, container } = await render(Map, { props: { navigation } });
 		await expect.poll(() => container.querySelector('.leaflet-overlay-pane svg')).not.toBeNull();
 		component.focusOnPoiId('poi_hr_1-1');
-		await rerender({ selectedPoi: pois.find((poi) => poi.id === 'poi_hr_1-1')! });
+		navigation.setHighlight('poi_hr_1-1');
 		await expect.poll(() => container.querySelector('.poi-highlight')?.id).toBe('hr_1-1');
-		await rerender({ selectedPoi: null });
+		expect(navigation.setHighlight('poi_po-chem')).toBe(true);
+		expect(navigation.selectedPoi?.id).toBe('poi_po-chem');
 		await expect.poll(() => container.querySelector('.poi-highlight')).toBeNull();
 	});
 
@@ -108,7 +122,7 @@ describe('Map shared navigation', () => {
 		expect(errors).not.toHaveBeenCalled();
 	});
 
-	it('読み込み前の互換APIの予約を親から解除しても復活させない', async () => {
+	it('読み込み前に親で解除した選択を復活させない', async () => {
 		let finish!: () => void;
 		mockMaps(
 			new Promise<void>((resolve) => {
@@ -116,8 +130,8 @@ describe('Map shared navigation', () => {
 			})
 		);
 		const navigation = createNavigationState();
-		const { component, container } = await render(Map, { props: { navigation } });
-		expect(component.highlightPoiById('poi_hr_1-1')).toBe(true);
+		const { container } = await render(Map, { props: { navigation } });
+		expect(navigation.setHighlight('poi_hr_1-1')).toBe(true);
 		expect(navigation.selectedPoi?.id).toBe('poi_hr_1-1');
 		navigation.clearHighlight();
 		finish();

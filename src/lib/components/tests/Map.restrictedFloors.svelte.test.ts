@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { render } from 'vitest-browser-svelte';
 import type * as LType from 'leaflet';
 import Map from '../Map.svelte';
+import { createNavigationState } from '../../states/navigation.svelte';
 
 const { maps } = vi.hoisted(() => ({ maps: [] as LType.Map[] }));
 vi.mock('leaflet', async (importOriginal) => {
@@ -39,7 +40,7 @@ async function renderRestrictedMap() {
 			{ headers: { 'Content-Type': 'image/svg+xml' } }
 		);
 	});
-	const rendered = await render(Map);
+	const rendered = await render(Map, { props: { navigation: createNavigationState() } });
 	await expect
 		.poll(() => rendered.container.querySelector('[data-map="master.svg"]'))
 		.not.toBeNull();

@@ -3,6 +3,8 @@ import { page } from 'vitest/browser';
 import { render } from 'vitest-browser-svelte';
 import type * as LType from 'leaflet';
 import Map from '../Map.svelte';
+import { createNavigationState } from '../../states/navigation.svelte';
+import { flushSync } from 'svelte';
 import { baseMapFiles, buildingMaps } from '../../../data/maps';
 import { MAX_FLOOR_CONTROL_LINE_LENGTH } from '../../map/floorControlLayout';
 
@@ -42,8 +44,14 @@ function mockMaps(outlines: Record<string, string> = {}) {
 	});
 }
 
+async function renderMap() {
+	const navigation = createNavigationState();
+	const rendered = await render(Map, { props: { navigation } });
+	return { ...rendered, navigation };
+}
+
 async function renderFloorMap() {
-	const rendered = await render(Map);
+	const rendered = await renderMap();
 	await expect
 		.poll(() => rendered.container.querySelector('[data-map="master.svg"]'))
 		.not.toBeNull();
@@ -129,7 +137,7 @@ describe('Map floor maps', () => {
 
 	it('ズームしないと階別図・UI・接続線を出さず、再ズーム時に選択した階を復元する', async () => {
 		mockMaps();
-		const { container, getByRole } = await render(Map);
+		const { container, getByRole } = await renderMap();
 		await expect.poll(() => container.querySelector('[data-map="master.svg"]')).not.toBeNull();
 		expect(container.querySelector('.building-controls')).toBeNull();
 		expect(container.querySelector('.building-floor-outline')).toBeNull();
@@ -484,11 +492,11 @@ describe('Map floor maps', () => {
 
 	it('複数棟表示で選択した階に合わせ、経路と始点・終点も切り替える', async () => {
 		mockMaps();
-		const { component, container, getByRole } = await renderFloorMap();
+		const { navigation, container, getByRole } = await renderFloorMap();
 		await expect
 			.poll(() => container.querySelectorAll('[data-building]').length)
 			.toBe(MAX_FOCUSED_BUILDINGS);
-		component.showRoute('node_la_f1_hr_1-1', 'node_la_f2_hr_2m');
+		flushSync(() => navigation.showRoute('node_la_f1_hr_1-1', 'node_la_f2_hr_2m'));
 		await getByRole('region', { name: '渡り廊下の階' })
 			.getByRole('button', { name: '2F', exact: true })
 			.click();
@@ -500,14 +508,14 @@ describe('Map floor maps', () => {
 
 	it('屋外の経路と正門マークは建物の階を変えても表示する', async () => {
 		mockMaps();
-		const { component, container, getByRole } = await renderFloorMap();
+		const { navigation, container, getByRole } = await renderFloorMap();
 		await expect
 			.poll(() => container.querySelectorAll('[data-building]').length)
 			.toBe(MAX_FOCUSED_BUILDINGS);
 		const map = maps.at(-1)!;
 		await new Promise<void>((resolve) => {
 			map.once('moveend', () => resolve());
-			component.showRoute('node_outdoor_f0_main-gate', 'node_la_f1_hr_1-1');
+			flushSync(() => navigation.showRoute('node_outdoor_f0_main-gate', 'node_la_f1_hr_1-1'));
 		});
 		map.setView([315, 850], 2, { animate: false });
 		await expect.poll(() => container.querySelector('[data-building="gym"]')).not.toBeNull();
@@ -519,12 +527,12 @@ describe('Map floor maps', () => {
 
 	it('近い地点の案内・始点・終点の吹き出しを重ねず、ズームや幅の変更後も配置する', async () => {
 		mockMaps();
-		const { component, container } = await renderFloorMap();
+		const { navigation, container } = await renderFloorMap();
 		await expect.poll(() => container.querySelector('[data-map="master.svg"]')).not.toBeNull();
 		const map = maps.at(-1)!;
 		await new Promise<void>((resolve) => {
 			map.once('moveend', () => resolve());
-			component.showRoute('node_la_f1_entrance', 'node_skybridge_f1_ee_la-south');
+			flushSync(() => navigation.showRoute('node_la_f1_entrance', 'node_skybridge_f1_ee_la-south'));
 		});
 		const fitsWithoutOverlap = () => {
 			const labels = Array.from(
@@ -558,7 +566,7 @@ describe('Map floor maps', () => {
 		container.querySelector<HTMLElement>('.map-wrapper')!.style.width = '320px';
 		map.invalidateSize({ animate: false });
 		await expect.poll(fitsWithoutOverlap).toBe(true);
-		component.clearRoute();
+		flushSync(() => navigation.clearRoute());
 		expect(container.querySelector('.route-label-connector')).toBeNull();
 		await expect
 			.poll(() => container.querySelector('.route-transition-label, .route-endpoint-label'))

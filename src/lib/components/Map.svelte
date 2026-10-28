@@ -4,13 +4,10 @@
 	import 'leaflet/dist/leaflet.css';
 	import '../map/mapLayers.css';
 	import type * as L from 'leaflet';
-	import type { Poi } from '../../data/types';
 	import { baseMapFiles, buildingMaps } from '../../data/maps';
 	import type { BuildingMap } from '../../data/maps';
-	import { createNavigationState } from '../states/navigation.svelte';
 	import type { NavigationState, PoiHighlights } from '../states/navigation.svelte';
 	import { highlightColors, highlightRoles } from '../map/highlightColors';
-	import type { HighlightColor } from '../map/highlightColors';
 	import { createConnectedFloorLookup } from '../map/connectedFloors';
 	import {
 		createBuildingConnections,
@@ -32,14 +29,7 @@
 	import BottomSheet from './BottomSheet.svelte';
 	import type { BottomSheetSnap } from './BottomSheet.svelte';
 
-	let {
-		navigation = createNavigationState(),
-		selectedPoi = $bindable<Poi | null>(null)
-	}: {
-		navigation?: NavigationState;
-		/** 既存利用側向けの選択バインディング。新規利用側はnavigationを共有します。 */
-		selectedPoi?: Poi | null;
-	} = $props();
+	let { navigation }: { navigation: NavigationState } = $props();
 	const initialNavigation = untrack(() => navigation);
 	const getConnectedFloor = createConnectedFloorLookup(
 		initialNavigation.graph.nodes,
@@ -70,34 +60,9 @@
 	const switchableBuildings = $derived(
 		view.visibleBuildings.filter((building) => Object.keys(building.floors).length > 1)
 	);
-	const pendingPoiHighlights: Partial<Record<HighlightColor, { poiId: string; focus: boolean }>> =
-		{};
 	let renderedRoute: readonly string[] | null | undefined;
 	let renderedHighlights: PoiHighlights = {};
-	let lastPublishedPoi: Poi | null = null;
 
-	function publishSelection() {
-		lastPublishedPoi = navigation.selectedPoi;
-		if (selectedPoi?.id !== lastPublishedPoi?.id) selectedPoi = lastPublishedPoi;
-	}
-
-	// 旧バインディングへの親からの変更も、同じ共有状態へ反映します。
-	$effect(() => {
-		const requested = selectedPoi;
-		untrack(() => {
-			if (requested?.id === lastPublishedPoi?.id) return;
-			if (requested) navigation.setHighlight(requested.id);
-			else navigation.clearHighlight('selected');
-			publishSelection();
-		});
-	});
-	$effect(() => {
-		const selected = navigation.selectedPoi;
-		untrack(() => {
-			lastPublishedPoi = selected;
-			if (selectedPoi?.id !== selected?.id) selectedPoi = selected;
-		});
-	});
 	$effect(() => {
 		const path = navigation.routePath;
 		const highlights = navigation.highlights;
@@ -152,62 +117,8 @@
 		}
 		renderedHighlights = highlights;
 		poiLayer!.render(highlights);
-		publishSelection();
 		scheduleBuildingControls();
 		scheduleRouteLabels();
-	}
-
-	export function clearPoiHighlight(color: HighlightColor | undefined = undefined) {
-		if (color !== undefined && !highlightRoles.includes(color)) {
-			console.error(`ハイライトの色が見つかりません: ${color}`);
-			return;
-		}
-		for (const role of color ? [color] : highlightRoles) delete pendingPoiHighlights[role];
-		navigation.clearHighlight(color);
-		publishSelection();
-		renderNavigation();
-	}
-	export function highlightPoiById(poiId: string, color: HighlightColor = 'selected'): boolean {
-		return applyPoiHighlight(poiId, color, true);
-	}
-	function applyPoiHighlight(poiId: string, color: HighlightColor, focus: boolean): boolean {
-		if (disposed) return false;
-		if (!highlightRoles.includes(color)) {
-			console.error(`ハイライトの色が見つかりません: ${color}`);
-			return false;
-		}
-		const target = navigation.resolvePoi(poiId);
-		if (!target) {
-			console.error(`POIまたはノードが見つかりません: ${poiId}`);
-			return false;
-		}
-		if (!svgLayersReady) {
-			delete pendingPoiHighlights[color];
-			pendingPoiHighlights[color] = { poiId, focus };
-			navigation.setHighlight(poiId, color);
-			publishSelection();
-			return true;
-		}
-		if (!poiLayer!.findTarget(poiId)) {
-			console.error(`POIのSVG要素が見つかりません: ${poiId} (${target.poi.svgId})`);
-			return false;
-		}
-		delete pendingPoiHighlights[color];
-		navigation.setHighlight(poiId, color);
-		const buildingId = getNodeBuildingId(target.node);
-		if (buildingId !== 'outdoor') switchFloor(buildingId, target.node.floor);
-		renderNavigation();
-		if (focus) focusOnLocation(target.node.x, target.node.y, 1);
-		return true;
-	}
-	export function showRoute(startId: string, goalId: string): string[] | null {
-		const path = navigation.showRoute(startId, goalId);
-		renderNavigation();
-		return path;
-	}
-	export function clearRoute() {
-		navigation.clearRoute();
-		renderNavigation();
 	}
 
 	function scheduleBuildingControls() {
@@ -409,7 +320,7 @@
 					navigation.graph.nodes,
 					navigation.pois,
 					(poiId) => {
-						applyPoiHighlight(poiId, 'selected', false);
+						navigation.setHighlight(poiId);
 					}
 				);
 				const selections = await svgLayers.load();
@@ -422,11 +333,6 @@
 				mountedMap.fitBounds(MAP_BOUNDS);
 				updateMapState();
 				renderNavigation();
-				for (const [color, request] of Object.entries(pendingPoiHighlights)) {
-					if (navigation.highlights[color as HighlightColor] === request.poiId) {
-						applyPoiHighlight(request.poiId, color as HighlightColor, request.focus);
-					}
-				}
 			} catch (error) {
 				if (!disposed) console.error('マップの初期化エラー:', error);
 			}
@@ -454,11 +360,13 @@
 </script>
 
 <div
-	class="map-wrapper"
-	class:sheet-expanded={bottomSheetSnap === 'top'}
+	class={[
+		'map-wrapper relative isolate h-dvh w-full overflow-hidden [&_.leaflet-bottom.leaflet-right]:bottom-(--bottom-sheet-height)! [&_.leaflet-control-attribution]:mr-2!',
+		bottomSheetSnap === 'top' && 'sheet-expanded'
+	]}
 	style:--bottom-sheet-height={`${bottomSheetHeight}px`}
 >
-	<div bind:this={mapContainer} class="map-container"></div>
+	<div bind:this={mapContainer} class="map-container z-1 h-full w-full bg-[#898989]!"></div>
 	<BuildingFloorControls
 		buildings={switchableBuildings}
 		positions={buildingControlPositions}
@@ -475,29 +383,6 @@
 </div>
 
 <style>
-	.map-wrapper {
-		position: relative;
-		isolation: isolate;
-		width: 100%;
-		height: 100dvh;
-		overflow: hidden;
-	}
-
-	.map-container {
-		width: 100%;
-		height: 100%;
-		background-color: #f0f0f0;
-		z-index: 1;
-	}
-
-	.map-wrapper :global(.leaflet-bottom.leaflet-right) {
-		bottom: var(--bottom-sheet-height);
-	}
-
-	.map-wrapper :global(.leaflet-control-attribution) {
-		margin-right: 8px;
-	}
-
 	.sheet-expanded :global(.leaflet-control) {
 		visibility: hidden;
 		pointer-events: none;
