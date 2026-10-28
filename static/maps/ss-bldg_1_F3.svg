@@ -1,5 +1,5 @@
 <svg width="1400" height="1700" viewBox="0 0 1400 1700" fill="none" xmlns="http://www.w3.org/2000/svg">
-<g id="ss-bldg_1_F3">
+<g id="ss-bldg_1_F3"  fill="#ffffff" fill-opacity="0.6">
 <path id="ss1_f3_flame" d="M627 836H921V929.5H627V836Z" stroke="black"/>
 <path id="void-ss1-f3" fill-rule="evenodd" clip-rule="evenodd" d="M921 914H627V929.5H921V914Z" stroke="black"/>
 <path id="mc-room" d="M627 836H660V867.5H627V836Z" stroke="black"/>
@@ -30,7 +30,7 @@
 <path id="stair_ss1_f2_center_flame" d="M766.5 887H782.5V914H766.5V887Z" stroke="black"/>
 <path id="stair_ss1_f2_center_lines" d="M766.5 891H782.5M766.5 895H782.5M766.5 899H782.5M766.5 903H782.5" stroke="black" stroke-width="0.5"/>
 </g>
-<g id="stair_ss1_f3_east">
+<g id="stair_ss1_f3_east" fill-opacity="1">
 <path id="stair_ss1_f2_east_flame" d="M921 867.5H933V898.5H921V867.5Z" stroke="black"/>
 <path id="stair_ss1_f2_east_lines" d="M921 873.5H933M921 879.5H933M921 885.5H933M921 891.5H933" stroke="black" stroke-width="0.5"/>
 </g>
