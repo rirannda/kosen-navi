@@ -26,8 +26,11 @@
 </script>
 
 {#if buildings.length}
-	<div class="building-controls" bind:this={container}>
-		<svg class="building-control-connectors" aria-hidden="true">
+	<div class="building-controls pointer-events-none absolute inset-0 z-1000" bind:this={container}>
+		<svg
+			class="building-control-connectors absolute inset-0 size-full overflow-hidden"
+			aria-hidden="true"
+		>
 			{#each buildings as building (building.id)}
 				{@const position = positions[building.id]}
 				{#if position}
@@ -77,21 +80,6 @@
 {/if}
 
 <style>
-	.building-controls {
-		position: absolute;
-		inset: 0;
-		z-index: 1000;
-		pointer-events: none;
-	}
-
-	.building-control-connectors {
-		position: absolute;
-		inset: 0;
-		width: 100%;
-		height: 100%;
-		overflow: hidden;
-	}
-
 	.building-control-connectors line {
 		stroke: var(--building-outline-color);
 		stroke-width: 1.5;

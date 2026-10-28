@@ -1,5 +1,5 @@
 <svg width="1400" height="1700" viewBox="0 0 1400 1700" fill="none" xmlns="http://www.w3.org/2000/svg">
-<g id="cepc-bldg_F2">
+<g id="cepc-bldg_F2" fill="#ffffff" fill-opacity="0.6">
 <path id="cepc_f2_flame" fill-rule="evenodd" clip-rule="evenodd" d="M967 875V841.5V805.5H1101V834.5H1097V846H1085.5V875H982V889.5H967V875Z" stroke="black"/>
 <path id="stair_cepc_f2_e" d="M1088 850H1097M1088 850V854M1088 850V846H1097V850M1097 850V854M1097 854H1088M1097 854V858M1088 854V858M1088 858V861H1097V858M1088 858H1097" stroke="black"/>
 <path id="landing_cepc_f1-f2" fill-rule="evenodd" clip-rule="evenodd" d="M982 864H967V871H982V864Z" stroke="black"/>

@@ -3,6 +3,7 @@ import type { ConnectedFloorLookup } from './connectedFloors';
 
 export type BuildingFocusPoint = { x: number; y: number };
 export type BuildingConnections = ReadonlyMap<string, ReadonlySet<string>>;
+export const DEFAULT_CENTER_FOCUS_RADIUS = 120;
 const simplifiedOutlines = new WeakMap<
 	readonly BuildingFocusPoint[],
 	readonly BuildingFocusPoint[]
@@ -133,13 +134,17 @@ function outlineDistance(
 	return distance;
 }
 
-/** 中心に最も近い建物を起点とし、接続を優先してその輪郭から近い順に最大6棟を選びます。 */
+/** 全体が見える棟、中心範囲の棟、接続先の順で選び、足りなければ近い棟で補います。 */
 export function getFocusedBuildings(
 	buildings: readonly BuildingMap[],
 	center: BuildingFocusPoint,
 	connections: BuildingConnections,
 	outlines: ReadonlyMap<string, readonly BuildingFocusPoint[]> = new Map(),
-	limit = 6
+	limit = 6,
+	/** centerと同じ座標系の半径。呼び出し側で画面上のピクセル数を換算します。 */
+	centerRadius = DEFAULT_CENTER_FOCUS_RADIUS,
+	/** シートを除いた表示領域。centerと同じ座標系で左・上・右・下を指定します。 */
+	viewport?: readonly [number, number, number, number]
 ): BuildingMap[] {
 	if (!buildings.length || limit <= 0) return [];
 	const candidates = buildings
@@ -157,6 +162,12 @@ export function getFocusedBuildings(
 			return {
 				building,
 				polygon,
+				fullyVisible:
+					viewport !== undefined &&
+					polygon.every(
+						({ x, y }) =>
+							x >= viewport[0] && x <= viewport[2] && y >= viewport[1] && y <= viewport[3]
+					),
 				distance: centerDistance(polygon, center),
 				area: (right - left) * (bottom - top)
 			};
@@ -165,17 +176,27 @@ export function getFocusedBuildings(
 			(a, b) =>
 				a.distance - b.distance || a.area - b.area || a.building.id.localeCompare(b.building.id)
 		);
-	const root = candidates[0];
-	const selected = [root.building];
+	const radiusSquared = Math.max(0, centerRadius) ** 2;
+	const fullyVisible = candidates.filter((candidate) => candidate.fullyVisible);
+	const nearby = candidates.filter(
+		(candidate) => !candidate.fullyVisible && candidate.distance <= radiusSquared
+	);
+	const preferred = [...fullyVisible, ...nearby];
+	const root = preferred[0] ?? candidates[0];
+	const selected = (preferred.length ? preferred : [root])
+		.slice(0, limit)
+		.map(({ building }) => building);
+	if (selected.length >= limit) return selected;
+	const selectedIds = new Set(selected.map(({ id }) => id));
 	const remaining = candidates
-		.slice(1)
+		.filter(({ building }) => !selectedIds.has(building.id))
 		.map((candidate) => ({
 			...candidate,
 			distance: outlineDistance(root.polygon, candidate.polygon)
 		}))
 		.sort((a, b) => a.distance - b.distance || a.building.id.localeCompare(b.building.id));
 	while (selected.length < limit && remaining.length) {
-		// まず表示中のいずれかの棟につながる候補を選び、接続の途中を飛ばさないようにします。
+		// 全体表示・中心範囲の選択後、いずれかの選択済みの棟につながる候補から補います。
 		let index = remaining.findIndex(({ building }) =>
 			selected.some(({ id }) => connections.get(id)?.has(building.id))
 		);

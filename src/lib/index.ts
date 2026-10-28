@@ -1,4 +1,6 @@
 export { getRouteDisplay } from './route/routeDisplay';
+export { default as BottomSheet } from './components/BottomSheet.svelte';
+export type { BottomSheetSnap } from './components/BottomSheet.svelte';
 export { layoutRouteLabels } from './route/labelLayout';
 export type { LabelBounds, RouteLabel } from './route/labelLayout';
 export type { RouteTransition } from './route/routeDisplay';
@@ -7,7 +9,11 @@ export { getNearbyBuildings } from './map/nearbyBuildings';
 export { getVisibleBuildings } from './map/visibleBuildings';
 export { layoutFloorControls, MAX_FLOOR_CONTROL_LINE_LENGTH } from './map/floorControlLayout';
 export { getSvgOutlineAnchor, getSvgOutlinePoints } from './map/svgOutline';
-export { createBuildingConnections, getFocusedBuildings } from './map/focusedBuildings';
+export {
+	createBuildingConnections,
+	DEFAULT_CENTER_FOCUS_RADIUS,
+	getFocusedBuildings
+} from './map/focusedBuildings';
 export type { BuildingFocusPoint, BuildingConnections } from './map/focusedBuildings';
 export type {
 	FloorControl,

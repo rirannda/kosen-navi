@@ -1,6 +1,7 @@
-# POIのハイライト
+# POIの選択と経路表示
 
-新規の利用側では、親でナビゲーション状態を生成し、検索・地図・詳細表示で同じインスタンスを共有します。
+親でナビゲーション状態を生成し、検索・地図・詳細表示で同じインスタンスを共有します。
+`Map.svelte`の`navigation`は必須です。状態の自動生成や選択のバインディングは提供しません。
 
 ```svelte
 <script lang="ts">
@@ -18,93 +19,59 @@
 <button onclick={() => navigation.clearHighlight('selected')}>選択を解除</button>
 ```
 
-`setHighlight(poiId, role = 'selected')` はPOIとノードの存在を検証し、受理時に`true`を返します。
-SVG要素の存在・読み込み完了を保証する戻り値ではありません。カメラ移動は別操作です。
-`selectedPoi`は`selected`枠から導出し、地図上のタップも同じ共有状態を更新します。
-状態はメソッドで更新し、`highlights`・`routePath`は読み取り専用として扱います。
+状態は`navigation`のメソッドで変更し、`highlights`・`routePath`・`selectedPoi`は読み取り専用として扱います。
+地図の公開メソッドは`focusOnPoiId(poiId)`のみです。地図初期化後に呼び出して、対応する階へ切り替え、カメラを移動します。
+共有状態の変更とカメラ移動は別の操作です。ハイライトを変更してもPOIへ自動的に移動しません。
 
-`navigation.showRoute(startNodeId, goalNodeId)`と`navigation.clearRoute()`で経路を変更できます。
-経路にはnode ID、ハイライトにはPOI IDを使います。経路と役割別ハイライトは独立しています。
-初期化前の状態は読み込み完了時に反映し、地図を破棄しても親の状態は解除しません。
-同じ地図の存続中は同じモデルを渡し、別の地図・ページには別のインスタンスを生成します。
+## POIのハイライト
 
-## 既存のコンポーネントAPI
+`navigation.setHighlight(poiId, role = 'selected')`は役割・POI・ノードの存在を検証し、受理時に`true`を返します。
+不正な入力では`false`を返し、現在の状態を維持します。
+SVG要素の存在や読み込み完了を保証する戻り値ではありません。対応する図形がない場合も、存在するPOIは状態として受理します。
 
-`Map.svelte` のコンポーネント参照から、POI IDを指定して呼び出します。
-`navigation`を省略した場合は、その地図専用のモデルを生成します。
+| 役割       | 色  | 用途          |
+| ---------- | --- | ------------- |
+| `start`    | 緑  | スタートのPOI |
+| `goal`     | 赤  | ゴールのPOI   |
+| `selected` | 黄  | 選択中のPOI   |
 
-```svelte
-<script lang="ts">
-	import Map from '#lib/components/Map.svelte';
-	import type { HighlightColor, Poi } from '#lib';
-
-	let selectedPoi = $state<Poi | null>(null);
-
-	let mapComponent:
-		| {
-				highlightPoiById: (poiId: string, color?: HighlightColor) => boolean;
-				clearPoiHighlight: (color?: HighlightColor) => void;
-		  }
-		| undefined;
-</script>
-
-<Map bind:this={mapComponent} bind:selectedPoi />
-<p>選択中: {selectedPoi?.name ?? '未選択'}</p>
-<button onclick={() => mapComponent?.highlightPoiById('poi_hr_1-1', 'start')}>1-1HRを表示</button>
-<button onclick={() => mapComponent?.clearPoiHighlight('selected')}>選択だけを解除</button>
-<button onclick={() => mapComponent?.clearPoiHighlight()}>ハイライトを解除</button>
-```
-
-`highlightPoiById(poiId, color = 'selected')` は `pois` の `nodeId` から建物・階を特定し、その階のSVG内にある
-`svgId` の要素へ `poi-highlight` クラスを追加します。対応する階へ切り替えて移動し、
-図形の中心に `name` の吹き出しを表示します。
-屋外のPOIは基本図のSVGから探します。正門は `poi_main-gate` で指定でき、
-`highlightPoiById('poi_main-gate', 'goal')` のように色を指定できます。
-
-第2引数は色と役割を指定します。省略時は `selected` です。
-
-| 名前       | 色  | 用途       |
-| ---------- | --- | ---------- |
-| `start`    | 緑  | スタート   |
-| `goal`     | 赤  | ゴール     |
-| `selected` | 黄  | 通常の選択 |
-
-色の定義は `src/lib/map/highlightColors.ts` にあり、`#lib` から `highlightColors` と
-`HighlightColor` 型を参照できます。塗り・枠線・吹き出しの文字色をまとめて変更できます。
-
-`start`・`goal`・`selected` の3枠に、それぞれ最大1部屋だけ保持できます。最大3部屋を
-同時にハイライトし、同じ枠に別のPOIを指定すると、その枠の古い部屋だけを解除します。
-未定義の役割は受け付けません。
+色の定義は`src/lib/map/highlightColors.ts`にあり、`#lib`から`highlightColors`と`HighlightColor`型を参照できます。
+塗り・枠線・吹き出しの文字色をまとめて変更できます。
 
 ```ts
-mapComponent?.highlightPoiById('poi_hr_1-1', 'start');
-mapComponent?.highlightPoiById('poi_hr_1-2', 'goal');
-mapComponent?.highlightPoiById('poi_hr_1-3', 'selected');
+navigation.setHighlight('poi_hr_1-1', 'start');
+navigation.setHighlight('poi_hr_1-2', 'goal');
+navigation.setHighlight('poi_main-gate');
 ```
 
-同じ部屋が複数の枠を兼ねる場合は、ハイライトと吹き出しを1つにまとめます。
-色は `selected`、`goal`、`start` の順で優先し、優先されている枠を解除すると残る枠の色へ戻ります。
-階を切り替えて対象のSVGが非表示になると、その部屋の吹き出しも隠れ、対象の階へ戻ると再表示されます。
+3枠にそれぞれ最大1つのPOIを保持し、同じ枠への設定で対象を置き換えます。
+`selectedPoi`は`selected`枠から導出し、`start`・`goal`の変更では選択中のPOIを変更しません。
+同じ部屋が複数の枠を兼ねる場合は、ハイライトと吹き出しを1つにまとめ、`selected`、`goal`、`start`の順で色を優先します。
 
-建物内のPOIや正門に対応するSVGをタップすると、黄色のハイライトと吹き出しを表示し、
-`selectedPoi` に該当する `Poi` オブジェクトを登録します。親から `bind:selectedPoi` で参照でき、
-`selectedPoi.id`、`selectedPoi.name`、`selectedPoi.nodeId` などを利用できます。
-タップでは地図の位置・ズームを維持します。グループの子要素をタップした場合も親のPOIを選び、
-POIが紐づいていない図形や別の階にある同名のSVGでは選択を変更しません。
-キーボードのEnter・Spaceでも選択できます。
+描画では、POIの`nodeId`から建物・階を特定し、その階のSVG内にある`svgId`を強調して名前を表示します。
+屋外のPOIは基本図のSVGから探します。階の切り替えで対象のSVGが非表示になると吹き出しを隠し、対象の階へ戻ると再表示します。
 
-タップは `selected` 枠だけを置き換え、スタートとゴールのハイライトを維持します。
-`highlightPoiById(poiId, 'selected')` が成功した場合も `selectedPoi` が更新されます。
-`start`・`goal` を指定した呼び出しでは、選択中のPOIを変更しません。
-`clearPoiHighlight('selected')` で選択だけを解除し、`selectedPoi` を `null` に戻します。
-`clearPoiHighlight('start')`・`clearPoiHighlight('goal')` は各枠だけを解除し、
-引数なしの `clearPoiHighlight()` は3枠すべてを解除します。階を切り替えても各枠のPOIは維持します。
+建物内や正門の対応する図形をタップすると、`selected`枠を更新します。
+グループの子要素をタップした場合も親のPOIを選び、無関係な図形や別の階にある同名のSVGでは選択を変更しません。
+Enter・Spaceでも選択できます。タップでは地図の位置とズームを維持します。
 
-戻り値は表示を受け付けた場合に `true`、色名・POI・ノード・対応するSVG要素が見つからない場合に
-`false` です。失敗時は現在のハイライトを維持します。地図の初期化前は枠ごとに
-最新の呼び出しを共有状態に保存して `true` を返し、SVGの読み込み後に表示・移動します。
-予約も同じ枠ごとの制限を適用し、`clearPoiHighlight()`または親モデルの`clearHighlight()`で解除できます。
+`navigation.clearHighlight(role)`で指定した枠を解除し、引数なしですべての枠を解除します。
+`selected`枠を解除すると`selectedPoi`は`null`になります。階を切り替えても各枠のPOIは維持します。
 
-`showRoute(startId, goalId)` はスタート地点に緑の `S` マーク、ゴール地点に赤の旗を表示します。
-マークは各地点の階で表示され、経路を再表示・解除した際は古いマークも解除されます。
-始点と終点が同じ場合は `S/G` の共通マークを表示します。
+## 経路
+
+`navigation.showRoute(startNodeId, goalNodeId)`で探索し、経路のnode ID配列を返します。
+到達不能または不明なノードの場合は`null`を返し、表示経路を解除します。
+経路にはnode ID、ハイライトにはPOI IDを使い、それぞれ独立して変更できます。
+
+経路を描画すると、始点の階を表示し、その階の経路が収まるよう地図を調整します。
+スタート地点に緑の`S`、ゴール地点に赤の旗を表示し、始終点が同じ場合は`S/G`を表示します。
+マークは各地点の階で表示します。経路を更新・解除すると古いマークとラベルを除去します。
+`navigation.clearRoute()`で経路を解除しても、POIのハイライトは維持します。
+
+## 初期化と状態の寿命
+
+初期化前の状態は、SVGの読み込み完了時に反映します。
+読み込み中に変更した場合は最新の状態だけを表示し、解除した状態を再表示しません。
+POIへ移動する予約は行いません。地図を破棄しても親の状態は解除しません。
+同じ地図の存続中は同じモデルを渡し、別の地図・ページには別のインスタンスを生成します。

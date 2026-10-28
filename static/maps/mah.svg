@@ -1,5 +1,5 @@
 <svg width="1400" height="1700" viewBox="0 0 1400 1700" fill="none" xmlns="http://www.w3.org/2000/svg">
-<g id="mah">
+<g id="mah" fill="#ffffff" fill-opacity="0.6">
 <path id="mah_flame" fill-rule="evenodd" clip-rule="evenodd" d="M985 1367H980V1346.5L985 1341.5H1115L1120 1346.5V1367.5H1115V1430.5H985V1367Z" stroke="black"/>
 <path id="equipment-room_mah-1" fill-rule="evenodd" clip-rule="evenodd" d="M1010.5 1367H980V1346.5L985 1341.5H1010.5V1367Z" stroke="black"/>
 <path id="equipment-room_mah-2" fill-rule="evenodd" clip-rule="evenodd" d="M1115 1341.5H1088.5L1088.5 1367H1120V1346.5L1115 1341.5Z" stroke="black"/>

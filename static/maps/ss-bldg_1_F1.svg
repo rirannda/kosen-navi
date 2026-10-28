@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1400" height="1700" viewBox="0 0 1400 1700" fill="none">
-<g id="ss-bldg_1_F1">
+<g id="ss-bldg_1_F1" fill="#FFFFFF" fill-opacity="0.6">
 <path id="ss1_f1_flame" fill-rule="evenodd" clip-rule="evenodd" d="M921 929.5H627V836H921V929.5Z" stroke="black"/>
 <path id="startup-ws" fill-rule="evenodd" clip-rule="evenodd" d="M692.5 879H627V929.5H692.5V879Z" stroke="black"/>
 <path id="pr-dyn-des" fill-rule="evenodd" clip-rule="evenodd" d="M839 867.5V836H855.5V867.5H839Z" stroke="black"/>
@@ -12,7 +12,7 @@
 <path id="lab-elec-eng" fill-rule="evenodd" clip-rule="evenodd" d="M855.5 929.5H790.5V879H855.5V929.5Z" stroke="black"/>
 <path id="lab-des-eng" fill-rule="evenodd" clip-rule="evenodd" d="M888 879H855.5V910.5H888V879Z" stroke="black"/>
 <path id="stg_ss1_f1_east" fill-rule="evenodd" clip-rule="evenodd" d="M912.5 867.5H921V852H912.5V867.5Z" stroke="black"/>
-<path id="stair_ss1_f1-f2_east" d="M933 898.5H921V867.5H933V898.5Z" stroke="black"/>
+<path id="stair_ss1_f1-f2_east" d="M933 898.5H921V867.5H933V898.5Z" fill-opacity="1" stroke="black"/>
 <path id="wc-men_ss1_f1" fill-rule="evenodd" clip-rule="evenodd" d="M921 836V852H904.5V836H921Z" stroke="black"/>
 <path id="technical-support-office" fill-rule="evenodd" clip-rule="evenodd" d="M904.5 867.5V836H855.5V867.5H904.5Z" stroke="black"/>
 <path id="to-hirai" fill-rule="evenodd" clip-rule="evenodd" d="M888 910.5H855.5V929.5H888V910.5Z" stroke="black"/>

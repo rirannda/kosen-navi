@@ -9,8 +9,8 @@
 <path id="hr_1-1" fill-rule="evenodd" clip-rule="evenodd" d="M547.5 1182.5H514.5V1151H547.5V1182.5Z" stroke="black"/>
 <path id="wc-mens_la_f1" fill-rule="evenodd" clip-rule="evenodd" d="M564.5 1083H581V1107H564.5V1083Z" stroke="black"/>
 <g id="stair_la_f1-f2_west">
-<path id="stair_la_f1-f2_west_lines" d="M393.5 1083.5V1091.5M390 1083.5V1091H381M381 1095H385" stroke="black" stroke-width="0.5"/>
 <path id="stair_la_f1-f2_west_flame" d="M398 1091.5V1083.5H393.5H390H381V1091.5V1095V1099L383.25 1097.12L384.375 1096.19L384 1094.5L385.5 1095.25L387 1096L386.625 1094.31L387.75 1093.38L390 1091.5H393.5H398Z" stroke="black"/>
+<path id="stair_la_f1-f2_west_lines" d="M393.5 1083.5V1091.5M390 1083.5V1091H381M381 1095H385" stroke="black" stroke-width="0.5"/>
 </g>
 <g id="stair_la_f1-f2_east">
 <path id="stair_la_f1-f2_east_flame" d="M581 1131V1115L578.875 1117L577.812 1118L576.5 1117.5L576.75 1119L577 1120.5L575.688 1120L574.625 1121L572.5 1123H564.5V1131H581Z" stroke="black"/>
