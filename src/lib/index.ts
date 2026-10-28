@@ -25,6 +25,11 @@ export { createConnectedFloorLookup } from './map/connectedFloors';
 export type { ConnectedFloorLookup } from './map/connectedFloors';
 export type { HighlightColor } from './map/highlightColors';
 export type { Poi } from '../data/types';
-export { createNavigationState } from './states/navigation.svelte';
+export {
+	createNavigationState,
+	getNavigation,
+	provideNavigation,
+	requireNavigation
+} from './states/navigation.svelte';
 export type { NavigationState, NavigationData, PoiHighlights } from './states/navigation.svelte';
 export { getAvailableFloor, synchronizeFloors } from './map/state/floors';
