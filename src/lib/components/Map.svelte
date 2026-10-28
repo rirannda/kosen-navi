@@ -6,6 +6,7 @@
 	import type * as L from 'leaflet';
 	import { baseMapFiles, buildingMaps } from '../../data/maps';
 	import type { BuildingMap } from '../../data/maps';
+	import { createNavigationState, getNavigation } from '../states/navigation.svelte';
 	import type { NavigationState, PoiHighlights } from '../states/navigation.svelte';
 	import { highlightColors, highlightRoles } from '../map/highlightColors';
 	import { createConnectedFloorLookup } from '../map/connectedFloors';
@@ -29,7 +30,14 @@
 	import BottomSheet from './BottomSheet.svelte';
 	import type { BottomSheetSnap } from './BottomSheet.svelte';
 
-	let { navigation }: { navigation: NavigationState } = $props();
+	let {
+		navigation = getNavigation() ?? createNavigationState(),
+		selectedPoi = $bindable<Poi | null>(null)
+	}: {
+		navigation?: NavigationState;
+		/** 既存利用側向けの選択バインディング。新規利用側はnavigationを共有します。 */
+		selectedPoi?: Poi | null;
+	} = $props();
 	const initialNavigation = untrack(() => navigation);
 	const getConnectedFloor = createConnectedFloorLookup(
 		initialNavigation.graph.nodes,
@@ -92,6 +100,11 @@
 				adjustingSheet = false;
 			}
 		});
+	});
+
+	$effect(() => {
+		const request = navigation.focusRequest;
+		if (request) untrack(() => focusOnPoiId(request.poiId));
 	});
 
 	function renderNavigation(path = navigation.routePath, highlights = navigation.highlights) {

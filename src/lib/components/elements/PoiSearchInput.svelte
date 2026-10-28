@@ -1,18 +1,25 @@
 <script lang="ts">
 	import type { HTMLInputAttributes } from 'svelte/elements';
 	import type { Poi } from '#lib';
-	import SearchList from '#lib/components/elements/SearchList.svelte';
+	import PoiSearchList from '#lib/components/elements/PoiSearchList.svelte';
 	import Fuse from 'fuse.js';
 	import { pois } from '../../../data/pois';
 
 	let {
 		onselect,
 		large,
+		placeholder = '場所を検索',
 		...rest
 	}: {
 		onselect: (poiId: string) => void;
 		large?: boolean;
-	} & Omit<HTMLInputAttributes, 'value' | 'onselect'> = $props();
+		placeholder?: string;
+	} & Omit<HTMLInputAttributes, 'value' | 'onselect' | 'placeholder'> = $props();
+
+	// 複数のPoiSearchInputを並べてもIDが衝突しないようにする
+	const uid = $props.id();
+	const listboxId = `${uid}-listbox`;
+	const optionId = (i: number) => `${uid}-option-${i}`;
 
 	const MAX_RESULTS = 20;
 	const fuse = new Fuse(pois, {
@@ -30,21 +37,19 @@
 		open && query.trim() ? fuse.search(query.trim(), { limit: MAX_RESULTS }).map((r) => r.item) : []
 	);
 
-	$effect(() => {
-		results;
+	function close() {
+		open = false;
 		activeIndex = -1;
-	});
+	}
 
-	$effect(() => {
-		if (activeIndex >= 0) {
-			document.getElementById(`search-option-${activeIndex}`)?.scrollIntoView({ block: 'nearest' });
-		}
-	});
+	function oninput() {
+		open = true;
+		activeIndex = -1;
+	}
 
 	function select(poi: Poi) {
 		query = poi.name;
-		open = false;
-		activeIndex = -1;
+		close();
 		onselect(poi.id);
 	}
 
@@ -55,14 +60,13 @@
 			e.preventDefault();
 			open = true;
 			if (n === 0) return;
-			const d = e.key === 'ArrowDown' ? 1 : -1;
-			activeIndex = activeIndex < 0 ? (d > 0 ? 0 : n - 1) : (activeIndex + d + n) % n;
+			const step = e.key === 'ArrowDown' ? 1 : -1;
+			activeIndex = activeIndex < 0 ? (step > 0 ? 0 : n - 1) : (activeIndex + step + n) % n;
 		} else if (e.key === 'Enter' && results[activeIndex]) {
 			e.preventDefault();
 			select(results[activeIndex]);
 		} else if (e.key === 'Escape') {
-			open = false;
-			activeIndex = -1;
+			close();
 		}
 	}
 </script>
@@ -71,17 +75,17 @@
 	<input
 		type="search"
 		class="w-full rounded-full border border-gray-300 bg-white px-3 py-2"
-		placeholder="場所を検索"
+		{placeholder}
 		bind:value={query}
-		oninput={() => (open = true)}
+		{oninput}
 		{onkeydown}
 		role="combobox"
 		aria-expanded={results.length > 0}
-		aria-controls="search-listbox"
-		aria-activedescendant={activeIndex >= 0 ? `search-option-${activeIndex}` : undefined}
+		aria-controls={listboxId}
+		aria-activedescendant={activeIndex >= 0 ? optionId(activeIndex) : undefined}
 		{...rest}
 	/>
 	<div class="absolute z-10 w-full">
-		<SearchList {results} {activeIndex} onselect={select} />
+		<PoiSearchList {results} {activeIndex} {listboxId} {optionId} onselect={select} />
 	</div>
 </div>
