@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { BuildingMap } from '../../data/maps';
 	import type { FloorControlPlacement } from '../map/floorControlLayout';
+	import { formatFloorLabel, getFloorOrder } from '../map/floorDisplay';
 	let {
 		buildings,
 		positions,
@@ -33,7 +34,7 @@
 		>
 			{#each buildings as building (building.id)}
 				{@const position = positions[building.id]}
-				{#if position}
+				{#if position && Object.keys(building.floors).length > 1}
 					<g style:--building-outline-color={colors[building.id]}>
 						<line
 							data-connector={building.id}
@@ -49,31 +50,33 @@
 		</svg>
 		{#each buildings as building (building.id)}
 			{@const position = positions[building.id]}
+			{@const switchable = Object.keys(building.floors).length > 1}
 			<section
 				class="custom-control-panel"
+				class:building-name-label={!switchable}
 				use:observeControl
 				style:transform={`translate(${position?.x ?? 0}px, ${position?.y ?? 0}px)`}
 				style:visibility={position ? 'visible' : 'hidden'}
 				style:--building-outline-color={colors[building.id]}
 				data-building={building.id}
 				data-snap={position?.side}
-				aria-label={`${building.name}の階`}
+				aria-label={switchable ? `${building.name}の階` : `${building.name}の建物名`}
 			>
 				<h3>{building.name}</h3>
-				<div class="floor-buttons">
-					{#each Object.keys(building.floors)
-						.map(Number)
-						.sort((a, b) => b - a) as floor (floor)}
-						<button
-							class:active={activeFloors[building.id] === floor}
-							aria-pressed={activeFloors[building.id] === floor}
-							onclick={() => onfloorchange(building.id, floor)}
-							type="button"
-						>
-							{floor < 0 ? `B${-floor}` : `${floor}F`}
-						</button>
-					{/each}
-				</div>
+				{#if switchable}
+					<div class="floor-buttons">
+						{#each getFloorOrder(building) as floor (floor)}
+							<button
+								class:active={activeFloors[building.id] === floor}
+								aria-pressed={activeFloors[building.id] === floor}
+								onclick={() => onfloorchange(building.id, floor)}
+								type="button"
+							>
+								{formatFloorLabel(building.id, floor)}
+							</button>
+						{/each}
+					</div>
+				{/if}
 			</section>
 		{/each}
 	</div>
@@ -110,6 +113,14 @@
 		line-height: 1.3;
 		color: var(--building-outline-color, #333);
 		text-align: center;
+	}
+
+	.building-name-label {
+		pointer-events: none;
+	}
+
+	.building-name-label h3 {
+		margin-bottom: 0;
 	}
 
 	.floor-buttons {

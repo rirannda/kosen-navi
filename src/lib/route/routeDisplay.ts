@@ -1,5 +1,6 @@
 import { buildingNames } from '../../data/buildings';
-import type { Node } from '../../data/types';
+import type { Edge, Node } from '../../data/types';
+import { formatFloorLabel } from '../map/floorDisplay';
 
 export type RouteTransition = {
 	from: Node;
@@ -14,14 +15,11 @@ function getBuildingId(node: Node): string | undefined {
 	return node.buildingId ?? /^node_(.+)_f-?\d+_/.exec(node.id)?.[1];
 }
 
-function formatFloor(floor: number): string {
-	return floor < 0 ? `地下${Math.abs(floor)}階` : `${floor}階`;
-}
-
 function formatLocation(node: Node): string {
 	const buildingId = getBuildingId(node);
 	const buildingName = buildingId ? (buildingNames[buildingId] ?? buildingId) : '';
-	return `${buildingName ? `${buildingName} ` : ''}${formatFloor(node.floor)}`;
+	if (buildingId === 'outdoor') return buildingName;
+	return `${buildingName ? `${buildingName} ` : ''}${formatFloorLabel(buildingId ?? '', node.floor, false)}`;
 }
 
 function isSameLocation(a: Node, b: Node): boolean {
@@ -41,7 +39,8 @@ function hasExit(path: Node[], index: number): boolean {
 
 export function getRouteDisplay(
 	pathIds: string[],
-	nodes: Node[]
+	nodes: Node[],
+	edges?: readonly Edge[]
 ): { segments: Node[][]; transitions: RouteTransition[] } {
 	const nodeById = new Map(nodes.map((node) => [node.id, node]));
 	const segments: Node[][] = [];
@@ -68,11 +67,20 @@ export function getRouteDisplay(
 			const changesBuilding = fromBuilding !== toBuilding;
 
 			if (changesFloor || changesBuilding) {
+				const fromId = previous.id;
+				const connection = edges?.filter(
+					(edge) =>
+						(edge.fromNode === fromId && edge.toNode === node.id) ||
+						(edge.fromNode === node.id && edge.toNode === fromId)
+				);
+				const usesStairs = connection?.length
+					? connection.every((edge) => edge.isStairs)
+					: changesFloor;
 				transitions.push({
 					from: previous,
 					to: node,
 					label: `${formatLocation(node)}へ`,
-					icon: changesFloor ? 'stairs' : 'building',
+					icon: usesStairs ? 'stairs' : 'building',
 					exit: hasExit(path, index) ? { label: `${formatLocation(previous)}から進む` } : null
 				});
 			}

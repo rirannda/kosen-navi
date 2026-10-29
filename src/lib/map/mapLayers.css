@@ -3,13 +3,17 @@
 	pointer-events: none !important;
 }
 
+/* 外枠に重なる部屋の線も、フォーカス中の階の色に揃えます。 */
+.building-floor-focused :where([stroke]:not([stroke='none'])) {
+	stroke: var(--building-outline-color) !important;
+}
+
 .building-floor-outline {
-	fill: none !important;
-	stroke: var(--building-outline-color, #2563eb) !important;
-	stroke-width: 6;
+	stroke-width: 3;
 	stroke-linejoin: round;
-	opacity: 0.65;
-	filter: blur(var(--building-outline-blur, 3px));
+	stroke-dasharray: none;
+	opacity: 1;
+	filter: none;
 	vector-effect: non-scaling-stroke;
 	pointer-events: none !important;
 }

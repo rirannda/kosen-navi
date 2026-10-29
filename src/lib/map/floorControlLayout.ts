@@ -42,6 +42,7 @@ export function layoutFloorControls(
 	obstacles: readonly LabelBounds[] = []
 ): FloorControlPlacement[] {
 	const padding = 8;
+	const topPadding = 50;
 	const gap = 12;
 	const buildingById = new Map(buildings.map((building) => [building.id, building]));
 	const anchorCache = new Map<string, Map<string, { x: number; y: number }>>();
@@ -83,6 +84,7 @@ export function layoutFloorControls(
 		occupied: readonly LabelBounds[],
 		maxLineLength = Infinity
 	): FloorControlPlacement | undefined {
+		if (topPadding + control.height + padding > viewport.height) return;
 		const building = buildingById.get(control.id)!;
 		const left = clamp(building.x, 0, viewport.width);
 		const right = clamp(building.x + building.width, 0, viewport.width);
@@ -91,7 +93,7 @@ export function layoutFloorControls(
 		const centerX = (left + right) / 2;
 		const centerY = (top + bottom) / 2;
 		const clampX = (x: number) => clamp(x, padding, viewport.width - control.width - padding);
-		const clampY = (y: number) => clamp(y, padding, viewport.height - control.height - padding);
+		const clampY = (y: number) => clamp(y, topPadding, viewport.height - control.height - padding);
 		const xs = new Set([
 			centerX - control.width / 2,
 			left,
@@ -103,7 +105,7 @@ export function layoutFloorControls(
 			centerY - control.height / 2,
 			top,
 			bottom - control.height,
-			padding,
+			topPadding,
 			viewport.height - control.height - padding
 		]);
 		// 辺に沿ってずらす候補も加え、隣の建物や配置済みパネルの脇を探します。

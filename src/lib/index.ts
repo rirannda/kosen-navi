@@ -1,6 +1,6 @@
 export type { Poi } from '../data/types';
 export type { BottomSheetSnap } from './components/BottomSheet.svelte';
-export { default as BottomSheet } from './components/BottomSheet.svelte';
+export { default as BottomSheet, BOTTOM_SHEET_PEEK_HEIGHT } from './components/BottomSheet.svelte';
 export type { ConnectedFloorLookup } from './map/connectedFloors';
 export { createConnectedFloorLookup } from './map/connectedFloors';
 export type {
@@ -26,6 +26,8 @@ export type { LabelBounds, RouteLabel } from './route/labelLayout';
 export { layoutRouteLabels } from './route/labelLayout';
 export type { RouteTransition } from './route/routeDisplay';
 export { getRouteDisplay } from './route/routeDisplay';
+export { getRouteEntryFloors } from './route/routeFloors';
+export { formatFloorLabel, getFloorOrder } from './map/floorDisplay';
 export type { NavigationData, NavigationState, PoiHighlights } from './states/navigation.svelte';
 export {
 	createNavigationState,

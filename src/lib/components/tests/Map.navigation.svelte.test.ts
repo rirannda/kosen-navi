@@ -44,6 +44,10 @@ describe('Map shared navigation', () => {
 		);
 		await getByRole('button', { name: 'HR教室:1-1', exact: true }).click();
 		expect(navigation.selectedPoi?.id).toBe('poi_hr_1-1');
+		await expect
+			.poll(() => container.querySelector('.route-search-panel')?.textContent)
+			.toContain('HR教室:1-1');
+		expect(container.querySelector('.bottom-sheet')?.getAttribute('data-snap')).toBe('bottom');
 		expect(navigation.highlights.start).toBe('poi_hr_1-1');
 		navigation.clearHighlight('selected');
 		await expect

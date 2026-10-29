@@ -16,6 +16,30 @@ const walls: Record<FloorControlSide, FloorControlBuilding> = {
 };
 
 describe('layoutFloorControls', () => {
+	it('上端にある建物のUIも上から50px以上離して配置する', () => {
+		for (const height of [600, 118]) {
+			const [position] = layoutFloorControls(
+				[{ id: 'target', width: 80, height: 60 }],
+				[{ id: 'target', x: 150, y: 0, width: 100, height: 40 }],
+				{ width: 390, height }
+			);
+			expect(position.y).toBeGreaterThanOrEqual(50);
+			expect(position.y + position.height).toBeLessThanOrEqual(height - 8);
+			expect(
+				Math.hypot(position.anchorX - position.lineX, position.anchorY - position.lineY)
+			).toBeLessThanOrEqual(MAX_FLOOR_CONTROL_LINE_LENGTH);
+		}
+	});
+
+	it('上端50pxと下端の余白を確保できないUIは配置しない', () => {
+		expect(
+			layoutFloorControls([{ id: 'target', width: 80, height: 60 }], [target], {
+				width: 390,
+				height: 117
+			})
+		).toEqual([]);
+	});
+
 	it.each(['top', 'right', 'bottom', 'left'] as const)(
 		'他の建物がない%s側の辺へスナップする',
 		(side) => {

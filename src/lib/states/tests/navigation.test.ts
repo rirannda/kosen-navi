@@ -22,6 +22,50 @@ afterEach(() => {
 });
 
 describe('navigation state', () => {
+	it('バリアフリーの切り替えで実データの経路を再検索し、階段を通らない', () => {
+		const state = createNavigationState();
+		const normal = state.showRoute('node_outdoor_f0_main-gate', 'node_la_f1_hr_1-1');
+		expect(normal).not.toBeNull();
+		state.setBarrierFree(true);
+		expect(state.barrierFree).toBe(true);
+		expect(state.routePath).not.toEqual(normal);
+		expect(state.routePath).not.toBeNull();
+		for (let i = 1; i < state.routePath!.length; i++) {
+			const from = state.routePath![i - 1];
+			const to = state.routePath![i];
+			expect(
+				state.graph.edges.some(
+					(edge) =>
+						!edge.isStairs &&
+						((edge.fromNode === from && edge.toNode === to) ||
+							(edge.fromNode === to && edge.toNode === from))
+				)
+			).toBe(true);
+		}
+		state.setBarrierFree(false);
+		expect(state.routePath).toEqual(normal);
+		state.clearRoute();
+		state.setBarrierFree(true);
+		expect(state.routePath).toBeNull();
+	});
+
+	it('階段以外の経路がない場合は解除し、オフに戻すと以前の検索条件で復元する', () => {
+		vi.spyOn(console, 'error').mockImplementation(() => {});
+		const state = createNavigationState({
+			...data,
+			graph: { ...data.graph, edges: data.graph.edges.map((edge) => ({ ...edge, isStairs: true })) }
+		});
+		state.setHighlight('poi-a', 'start');
+		state.setHighlight('poi-b', 'goal');
+		expect(state.showRoute('a', 'b')).toEqual(['a', 'b']);
+		state.setBarrierFree(true);
+		expect(state.routePath).toBeNull();
+		expect(state.routeError).toContain('階段を使わない経路が見つかりません');
+		expect(state.highlights).toEqual({ start: 'poi-a', goal: 'poi-b' });
+		state.setBarrierFree(false);
+		expect(state.routePath).toEqual(['a', 'b']);
+		expect(state.routeError).toBeNull();
+	});
 	it('3役割を独立して保持し、不正な入力でも選択を失わない', () => {
 		const state = createNavigationState(data);
 		expect(state.setHighlight('poi-a', 'start')).toBe(true);

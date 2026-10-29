@@ -6,13 +6,15 @@
 		onselect,
 		activeIndex = -1,
 		listboxId,
-		optionId
+		optionId,
+		maxHeight = '12.5rem'
 	}: {
 		results: Poi[];
 		onselect: (poi: Poi) => void;
 		activeIndex?: number;
 		listboxId: string;
 		optionId: (i: number) => string;
+		maxHeight?: string;
 	} = $props();
 
 	$effect(() => {
@@ -25,7 +27,8 @@
 {#if results.length > 0}
 	<ul
 		id={listboxId}
-		class="max-h-[calc(12.5rem+2px)] overflow-y-auto rounded-b border border-gray-300 bg-white"
+		class="overflow-y-auto rounded-xl border border-slate-200 bg-white shadow-sm"
+		style:max-height={maxHeight}
 		role="listbox"
 	>
 		{#each results as poi, i (poi.id)}
@@ -33,10 +36,11 @@
 				<button
 					type="button"
 					tabindex="-1"
-					class="w-full px-3 py-2 text-left hover:bg-gray-100 {i === activeIndex
+					class="min-h-11 w-full px-4 py-3 text-left text-sm hover:bg-gray-100 {i === activeIndex
 						? 'bg-gray-100'
 						: ''}"
 					onclick={() => onselect(poi)}
+					onpointerdown={(event) => event.preventDefault()}
 				>
 					{poi.name}
 				</button>

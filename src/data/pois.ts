@@ -3045,7 +3045,7 @@ export const pois: Pois = [
 	},
 	{
 		id: 'poi_cepc_f1_po-d-satonaka',
-		name: '研究室（里中）',
+		name: '研究室（里中先生・Dコース）',
 		categoryId: 'office',
 		nodeId: 'node_cepc_f1_po-d-satonaka',
 		svgId: 'po-d-satonaka',
@@ -3393,7 +3393,7 @@ export const pois: Pois = [
 	},
 	{
 		id: 'poi_cepc_f3_po-m-kamimura',
-		name: '研究室（上村）',
+		name: '研究室（上村先生・Mコース）',
 		categoryId: 'office',
 		nodeId: 'node_cepc_f3_po-m-kamimura',
 		svgId: 'po-m-kamimura',
@@ -3446,7 +3446,7 @@ export const pois: Pois = [
 	},
 	{
 		id: 'poi_cepc_f3_po-m-sugiura',
-		name: '研究室（杉浦）',
+		name: '研究室（杉浦先生・Mコース）',
 		categoryId: 'office',
 		nodeId: 'node_cepc_f3_po-m-sugiura',
 		svgId: 'po-m-sugiura',
@@ -3490,7 +3490,7 @@ export const pois: Pois = [
 	},
 	{
 		id: 'poi_cepc_f3_po-ando',
-		name: '研究室（安藤）',
+		name: '研究室（安藤先生・Eコース）',
 		categoryId: 'office',
 		nodeId: 'node_cepc_f3_po-ando',
 		svgId: 'po-ando',
@@ -3736,7 +3736,7 @@ export const pois: Pois = [
 	},
 	{
 		id: 'poi_po-gym-hashizume',
-		name: '研究室（橋爪）',
+		name: '研究室（橋爪先生・体育科）',
 		categoryId: 'office',
 		nodeId: 'node_gym_f2_po-gym-hashizume',
 		svgId: 'po-gym-hashizume',
@@ -4315,7 +4315,7 @@ export const pois: Pois = [
 	},
 	{
 		id: 'poi_po-pe-nakata',
-		name: '研究室（中田）',
+		name: '研究室（中田先生・体育科）',
 		categoryId: 'office',
 		nodeId: 'node_mah_f1_po-pe-nakata',
 		svgId: 'po-pe-nakata',

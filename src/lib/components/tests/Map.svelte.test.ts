@@ -271,6 +271,7 @@ describe('Map POI highlight', () => {
 		const originalStyle = firstRoom.getAttribute('style');
 		expect(firstRoom.id).toBe('hr_1-1');
 		expect(getComputedStyle(firstRoom).fill).toBe('rgb(251, 191, 36)');
+		expect(getComputedStyle(firstRoom).stroke).toBe('rgb(180, 83, 9)');
 		expect(container.querySelector('.poi-name-tooltip')?.textContent).toBe('HR教室:1-1');
 
 		expect(flushSync(() => navigation.setHighlight('poi_lab-a-phys'))).toBe(true);
@@ -397,7 +398,6 @@ describe('Map route endpoints', () => {
 			flushSync(() => navigation.showRoute('node_la_f1_hr_1-1', 'node_la_f3_lab-a-phys'))
 		).not.toBeNull();
 		expect(container.querySelectorAll('.route-endpoint-start').length).toBe(1);
-		expect(container.querySelector('.route-endpoint-goal')).toBeNull();
 		expect(container.querySelector('.route-endpoint-start')?.textContent).toBe('S');
 		expect(
 			getComputedStyle(container.querySelector('.route-endpoint-start .route-endpoint-symbol')!)
@@ -414,6 +414,7 @@ describe('Map route endpoints', () => {
 				}
 			)
 			.toBe('1F');
+		expect(container.querySelector('.route-endpoint-goal')).toBeNull();
 		await getByRole('region', { name: '教養棟の階' })
 			.getByRole('button', { name: '3F', exact: true })
 			.click();
