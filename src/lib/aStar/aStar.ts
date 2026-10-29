@@ -88,6 +88,15 @@ export function aStar(
 		return distance > 0 ? Math.min(scale, edge.weight / distance) : scale;
 	}, 1);
 
+	// 固定コストの階段が平面距離より安い場合も、残りのコストを過大評価しません。
+	const heuristicScale = graph.edges.reduce((scale, edge) => {
+		const fromNode = nodeMap.get(edge.fromNode);
+		const toNode = nodeMap.get(edge.toNode);
+		if (!fromNode || !toNode) return scale;
+		const distance = calculateEuclideanDistance(fromNode, toNode);
+		return distance > 0 ? Math.min(scale, edge.weight / distance) : scale;
+	}, 1);
+
 	const heuristic = (fromId: string, toId: string): number => {
 		const fromNode = nodeMap.get(fromId);
 		const toNode = nodeMap.get(toId);
