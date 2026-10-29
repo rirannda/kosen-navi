@@ -6,12 +6,13 @@ afterEach(() => vi.restoreAllMocks());
 
 async function renderSheet() {
 	const onheightchange = vi.fn();
-	const rendered = await render(BottomSheet, { onheightchange });
+	const onsettle = vi.fn();
+	const rendered = await render(BottomSheet, { onheightchange, onsettle });
 	rendered.container.style.cssText = 'position: relative; width: 390px; height: 800px';
 	const sheet = rendered.container.querySelector<HTMLElement>('.bottom-sheet')!;
 	const handle = rendered.container.querySelector<HTMLButtonElement>('.drag-handle')!;
-	await expect.poll(() => sheet.getBoundingClientRect().height).toBe(96);
-	return { ...rendered, sheet, handle, onheightchange };
+	await expect.poll(() => sheet.getBoundingClientRect().height).toBe(144);
+	return { ...rendered, sheet, handle, onheightchange, onsettle };
 }
 
 function pointer(handle: HTMLElement, type: string, y: number, time: number) {
@@ -29,20 +30,22 @@ function pointer(handle: HTMLElement, type: string, y: number, time: number) {
 
 describe('BottomSheet', () => {
 	it('初期状態は下に表示し、タップで中央・上・下に切り替える', async () => {
-		const { sheet, handle, getByRole, onheightchange } = await renderSheet();
+		const { sheet, handle, getByRole, onheightchange, onsettle } = await renderSheet();
 		expect(sheet.dataset.snap).toBe('bottom');
 		expect(handle.getAttribute('aria-expanded')).toBe('false');
 		const button = getByRole('button', { name: 'ボトムシートの高さを変更' });
 		await button.click();
-		await expect.poll(() => sheet.getBoundingClientRect().height).toBe(392);
+		await expect.poll(() => sheet.getBoundingClientRect().height).toBeCloseTo(784 / 3, 1);
 		expect(sheet.dataset.snap).toBe('middle');
+		await expect.poll(() => onsettle.mock.lastCall).toEqual(['middle', 784 / 3]);
 		expect(handle.getAttribute('aria-expanded')).toBe('true');
 		await button.click();
 		await expect.poll(() => sheet.getBoundingClientRect().height).toBe(784);
 		expect(sheet.dataset.snap).toBe('top');
 		await button.click();
-		await expect.poll(() => sheet.getBoundingClientRect().height).toBe(96);
-		await expect.poll(() => onheightchange.mock.lastCall?.[0]).toBe(96);
+		await expect.poll(() => sheet.getBoundingClientRect().height).toBe(144);
+		await expect.poll(() => onheightchange.mock.lastCall?.[0]).toBe(144);
+		expect(onsettle).toHaveBeenLastCalledWith('bottom', 144);
 	});
 
 	it('タッチのドラッグに追従して3段階にスナップし、直後のクリックで飛ばさない', async () => {
@@ -50,11 +53,11 @@ describe('BottomSheet', () => {
 		vi.spyOn(handle, 'setPointerCapture').mockImplementation(() => {});
 		pointer(handle, 'pointerdown', 720, 100);
 		pointer(handle, 'pointermove', 440, 500);
-		await expect.poll(() => sheet.getBoundingClientRect().height).toBe(376);
-		expect(onheightchange).toHaveBeenLastCalledWith(376);
+		await expect.poll(() => sheet.getBoundingClientRect().height).toBe(424);
+		expect(onheightchange).toHaveBeenLastCalledWith(424);
 		pointer(handle, 'pointerup', 440, 700);
 		handle.click();
-		await expect.poll(() => sheet.getBoundingClientRect().height).toBe(392);
+		await expect.poll(() => sheet.getBoundingClientRect().height).toBeCloseTo(784 / 3, 1);
 		expect(sheet.dataset.snap).toBe('middle');
 		pointer(handle, 'pointerdown', 440, 800);
 		pointer(handle, 'pointermove', 0, 1200);
@@ -64,7 +67,7 @@ describe('BottomSheet', () => {
 		pointer(handle, 'pointerdown', 0, 1500);
 		pointer(handle, 'pointermove', 1000, 1900);
 		pointer(handle, 'pointerup', 1000, 2100);
-		await expect.poll(() => sheet.getBoundingClientRect().height).toBe(96);
+		await expect.poll(() => sheet.getBoundingClientRect().height).toBe(144);
 		expect(sheet.dataset.snap).toBe('bottom');
 	});
 
@@ -73,9 +76,9 @@ describe('BottomSheet', () => {
 		vi.spyOn(handle, 'setPointerCapture').mockImplementation(() => {});
 		pointer(handle, 'pointerdown', 720, 100);
 		pointer(handle, 'pointermove', 240, 500);
-		await expect.poll(() => sheet.getBoundingClientRect().height).toBe(576);
+		await expect.poll(() => sheet.getBoundingClientRect().height).toBe(624);
 		pointer(handle, 'pointercancel', 240, 700);
-		await expect.poll(() => sheet.getBoundingClientRect().height).toBe(96);
+		await expect.poll(() => sheet.getBoundingClientRect().height).toBe(144);
 		expect(sheet.dataset.snap).toBe('bottom');
 	});
 
@@ -83,12 +86,12 @@ describe('BottomSheet', () => {
 		const { container, sheet, getByRole } = await renderSheet();
 		const button = getByRole('button', { name: 'ボトムシートの高さを変更' });
 		await button.click();
-		await expect.poll(() => sheet.getBoundingClientRect().height).toBe(392);
+		await expect.poll(() => sheet.getBoundingClientRect().height).toBeCloseTo(784 / 3, 1);
 		container.style.height = '600px';
-		await expect.poll(() => sheet.getBoundingClientRect().height).toBe(292);
+		await expect.poll(() => sheet.getBoundingClientRect().height).toBeCloseTo(584 / 3, 1);
 		await button.click();
 		await expect.poll(() => sheet.getBoundingClientRect().height).toBe(584);
 		await button.click();
-		await expect.poll(() => sheet.getBoundingClientRect().height).toBe(96);
+		await expect.poll(() => sheet.getBoundingClientRect().height).toBe(144);
 	});
 });

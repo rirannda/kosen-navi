@@ -1,8 +1,8 @@
 <script lang="ts">
-	import OMUCTMap from '#lib/components/Map.svelte';
-	import RouteSearchPanel from '#lib/components/layout/RouteSearchPanel.svelte';
 	import { provideNavigation } from '#lib';
-	provideNavigation();
+	import OMUCTMap from '#lib/components/Map.svelte';
+
+	const navigation = provideNavigation();
 </script>
 
-<OMUCTMap />
+<OMUCTMap {navigation} />

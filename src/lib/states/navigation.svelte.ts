@@ -25,6 +25,9 @@ export function createNavigationState(data?: NavigationData) {
 	let highlights = $state.raw<PoiHighlights>({});
 	let routePath = $state.raw<readonly string[] | null>(null);
 	let focusRequest = $state.raw<{ poiId: string } | null>(null);
+	let barrierFree = $state(false);
+	let routeError = $state<string | null>(null);
+	let routeRequest: { startId: string; goalId: string } | null = null;
 
 	function resolvePoi(poiId: string): { poi: Poi; node: Node } | undefined {
 		const poi = poiById.get(poiId);
@@ -50,8 +53,14 @@ export function createNavigationState(data?: NavigationData) {
 	}
 
 	function showRoute(startId: string, goalId: string): string[] | null {
-		const path = aStar(graph, startId, goalId);
+		routeRequest = { startId, goalId };
+		const path = aStar(graph, startId, goalId, { avoidStairs: barrierFree });
 		routePath = path ? [...path] : null;
+		routeError = path
+			? null
+			: barrierFree
+				? '階段を使わない経路が見つかりません。条件を変更してください。'
+				: '選択した場所を結ぶ経路が見つかりません。';
 		if (!path) console.error(`経路が見つかりません: ${startId} -> ${goalId}`);
 		return path;
 	}
@@ -63,12 +72,25 @@ export function createNavigationState(data?: NavigationData) {
 		setHighlight,
 		clearHighlight,
 		showRoute,
+		setBarrierFree: (enabled: boolean) => {
+			if (barrierFree === enabled) return;
+			barrierFree = enabled;
+			if (routeRequest) showRoute(routeRequest.startId, routeRequest.goalId);
+		},
 		/** 描画側にPOIへのカメラ移動を依頼します。同じPOIでも毎回新しい要求になります。 */
 		requestFocus: (poiId: string) => {
 			focusRequest = { poiId };
 		},
 		clearRoute: () => {
 			routePath = null;
+			routeRequest = null;
+			routeError = null;
+		},
+		get barrierFree() {
+			return barrierFree;
+		},
+		get routeError() {
+			return routeError;
 		},
 		get highlights() {
 			return highlights;

@@ -69,13 +69,7 @@ export function createSvgLayers(
 				const layer = loaded.get(file)!;
 				layer.options.pane = 'floor-maps';
 				const outline = elements.get(layer)!.querySelector('[id$="_flame"]');
-				if (outline) {
-					const border = outline.cloneNode(true) as SVGElement;
-					border.removeAttribute('id');
-					border.setAttribute('aria-hidden', 'true');
-					border.classList.add('building-floor-outline');
-					outline.parentNode?.insertBefore(border, outline);
-				}
+				outline?.classList.add('building-floor-outline');
 				layers[Number(floor)] = layer;
 				selectableLayers.push({ layer, buildingId: building.id, floor: Number(floor) });
 			}
@@ -110,13 +104,16 @@ export function createSvgLayers(
 			visibleBuildings.flatMap(({ id }) => {
 				const layer = floorLayers[id]?.[floors[id]];
 				const svg = layer ? elements.get(layer) : undefined;
+				svg?.classList.add('building-floor-focused');
 				svg?.style.setProperty('--building-outline-color', colors[id]);
-				svg?.style.setProperty('--building-outline-blur', `${3 / 2 ** map.getZoom()}px`);
 				return layer ? [layer] : [];
 			})
 		);
 		for (const layer of visibleLayers) {
 			if (!next.has(layer)) {
+				const svg = elements.get(layer);
+				svg?.classList.remove('building-floor-focused');
+				svg?.style.removeProperty('--building-outline-color');
 				layer.remove();
 				visibleLayers.delete(layer);
 			}

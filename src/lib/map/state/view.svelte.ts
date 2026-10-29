@@ -37,6 +37,12 @@ export function createMapViewState(
 		activeFloor = availableFloor(id, floor);
 		if (byId.has(id)) activeFloors[id] = activeFloor;
 	}
+	function selectRouteFloors(floors: Readonly<Record<string, number>>) {
+		const entries = Object.entries(floors).filter(([id]) => byId.has(id));
+		for (const [id, floor] of entries) activeFloors[id] = availableFloor(id, floor);
+		zoomedBldg = entries[0]?.[0] ?? '';
+		activeFloor = zoomedBldg ? activeFloors[zoomedBldg] : 0;
+	}
 	function setVisibleBuildings(buildings: BuildingMap[], synchronizeSelection = true) {
 		// 移動で近い順が変わっても、表示を続ける建物の色は維持します。
 		const retained = buildings.filter(({ id }) =>
@@ -75,6 +81,7 @@ export function createMapViewState(
 		availableFloor,
 		synchronize,
 		selectFloor,
+		selectRouteFloors,
 		setVisibleBuildings,
 		get activeFloors() {
 			return activeFloors;

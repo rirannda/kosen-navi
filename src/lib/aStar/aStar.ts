@@ -66,7 +66,8 @@ function reconstructPath(cameFrom: Map<string, string>, currentId: string): stri
 export function aStar(
 	graph: { nodes: Node[]; edges: EnhancedEdge[] },
 	startId: string,
-	goalId: string
+	goalId: string,
+	options: { avoidStairs?: boolean } = {}
 ): string[] | null {
 	const nodeMap = new Map(graph.nodes.map((node) => [node.id, node]));
 
@@ -75,13 +76,23 @@ export function aStar(
 	const goalNode = nodeMap.get(goalId);
 	if (!startNode || !goalNode) return null;
 
-	const adjacency = buildAdjacencyList(graph.nodes, graph.edges);
+	const edges = options.avoidStairs ? graph.edges.filter((edge) => !edge.isStairs) : graph.edges;
+	const adjacency = buildAdjacencyList(graph.nodes, edges);
+
+	// 固定コストの階段が平面距離より安い場合も、残りのコストを過大評価しません。
+	const heuristicScale = edges.reduce((scale, edge) => {
+		const fromNode = nodeMap.get(edge.fromNode);
+		const toNode = nodeMap.get(edge.toNode);
+		if (!fromNode || !toNode) return scale;
+		const distance = calculateEuclideanDistance(fromNode, toNode);
+		return distance > 0 ? Math.min(scale, edge.weight / distance) : scale;
+	}, 1);
 
 	const heuristic = (fromId: string, toId: string): number => {
 		const fromNode = nodeMap.get(fromId);
 		const toNode = nodeMap.get(toId);
 		if (!fromNode || !toNode) return Infinity;
-		return calculateEuclideanDistance(fromNode, toNode);
+		return calculateEuclideanDistance(fromNode, toNode) * heuristicScale;
 	};
 
 	const open = new Set([startId]);

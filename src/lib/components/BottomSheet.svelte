@@ -1,5 +1,6 @@
 <script module lang="ts">
 	export type BottomSheetSnap = 'bottom' | 'middle' | 'top';
+	export const BOTTOM_SHEET_PEEK_HEIGHT = 144;
 </script>
 
 <script lang="ts">
@@ -9,11 +10,13 @@
 	let {
 		snap = $bindable<BottomSheetSnap>('bottom'),
 		onheightchange,
+		onsettle,
 		children
 	}: {
 		snap?: BottomSheetSnap;
 		/** アニメーション・ドラッグ中も、画面を覆っている高さを通知します。 */
 		onheightchange?: (height: number) => void;
+		onsettle?: (snap: BottomSheetSnap, height: number) => void;
 		children?: Snippet;
 	} = $props();
 
@@ -21,7 +24,7 @@
 	const id = $props.id();
 	const contentId = `${id}-content`;
 	let availableHeight = $state(0);
-	let height = $state(96);
+	let height = $state(BOTTOM_SHEET_PEEK_HEIGHT);
 	let dragging = $state(false);
 	let animationFrame: number | undefined;
 	let pointerId: number | undefined;
@@ -34,10 +37,11 @@
 	let suppressClick = false;
 
 	function snapHeight(position: BottomSheetSnap): number {
-		const maximum = availableHeight || 96;
+		const maximum = availableHeight || BOTTOM_SHEET_PEEK_HEIGHT;
 		if (position === 'top') return maximum;
-		if (position === 'middle') return Math.max(Math.min(96, maximum), maximum / 2);
-		return Math.min(96, maximum);
+		if (position === 'middle')
+			return Math.max(Math.min(BOTTOM_SHEET_PEEK_HEIGHT, maximum), maximum / 3);
+		return Math.min(BOTTOM_SHEET_PEEK_HEIGHT, maximum);
 	}
 
 	function cancelAnimation() {
@@ -47,8 +51,10 @@
 
 	function animateTo(target: number) {
 		cancelAnimation();
+		const position = snap;
 		if (window.matchMedia('(prefers-reduced-motion: reduce)').matches || height === target) {
 			height = target;
+			onsettle?.(position, target);
 			return;
 		}
 		const from = height;
@@ -57,6 +63,7 @@
 			const progress = Math.min(1, (now - started) / 260);
 			height = from + (target - from) * (1 - (1 - progress) ** 3);
 			animationFrame = progress < 1 ? requestAnimationFrame(animate) : undefined;
+			if (progress === 1) onsettle?.(position, target);
 		}
 		animationFrame = requestAnimationFrame(animate);
 	}
@@ -156,7 +163,7 @@
 			<span class="h-1 w-9 rounded-full bg-[#b8bdc5]" aria-hidden="true"></span>
 		</button>
 		<div
-			class="sheet-content min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 pt-0 pb-[max(16px,env(safe-area-inset-bottom))]"
+			class="sheet-content min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 pt-1 pb-[max(16px,env(safe-area-inset-bottom))]"
 			id={contentId}
 		>
 			{@render children?.()}

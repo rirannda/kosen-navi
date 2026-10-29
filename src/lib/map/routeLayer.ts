@@ -1,5 +1,5 @@
 import type * as LType from 'leaflet';
-import type { Node as MapNode } from '../../data/types';
+import type { Edge, Node as MapNode } from '../../data/types';
 import { getRouteDisplay } from '../route/routeDisplay';
 import { layoutRouteLabels } from '../route/labelLayout';
 import type { LabelBounds } from '../route/labelLayout';
@@ -11,6 +11,7 @@ type RouteLabelDisplay = {
 	offset: [number, number];
 	connector?: LType.Polyline;
 };
+type RouteLocation = { buildingId: string; floor: number };
 
 /** 経路の描画資源だけを所有します。階やカメラの変更は呼び出し元に通知します。 */
 export function createRouteLayer(
@@ -18,13 +19,22 @@ export function createRouteLayer(
 	map: LType.Map,
 	mapContainer: HTMLElement,
 	mapNodes: MapNode[],
-	getFloors: () => { activeFloors: Readonly<Record<string, number>>; activeFloor: number },
-	onTransition: (node: MapNode) => void
+	getFloors: () => {
+		activeFloors: Readonly<Record<string, number>>;
+		activeFloor: number;
+		visibleBuildings: readonly { id: string }[];
+	},
+	onTransition: (node: MapNode) => void,
+	routeEdges?: readonly Edge[]
 ) {
 	let routeLayersByFloor: Partial<Record<number, LType.Polyline[]>> = {};
 	let routeMarkersByFloor: Partial<Record<number, LType.Marker[]>> = {};
 	let routePointsByFloor: Partial<Record<number, LType.LatLngExpression[]>> = {};
-	const routeBuildingByLayer = new WeakMap<LType.Layer, string>();
+	const routeLocationsByLayer = new WeakMap<LType.Layer, readonly RouteLocation[]>();
+	const locationOf = (node: MapNode): RouteLocation => ({
+		buildingId: getNodeBuildingId(node),
+		floor: node.floor
+	});
 	let routeLabels: RouteLabelDisplay[] = [];
 	function updateRouteLabels() {
 		const L = leaflet;
@@ -111,16 +121,18 @@ export function createRouteLayer(
 
 	function updateVisibleRoute() {
 		if (!map) return;
-		const isVisible = (layer: LType.Layer, floor: number) => {
-			const buildingId = routeBuildingByLayer.get(layer) ?? '';
-			return buildingId === 'outdoor'
-				? floor === 0
-				: (getFloors().activeFloors[buildingId] ?? getFloors().activeFloor) === floor;
-		};
+		const view = getFloors();
+		const visibleBuildings = new Set(view.visibleBuildings.map(({ id }) => id));
+		const isVisible = (layer: LType.Layer) =>
+			(routeLocationsByLayer.get(layer) ?? []).every(({ buildingId, floor }) => {
+				if (buildingId === 'outdoor') return floor === 0;
+				if (!visibleBuildings.has(buildingId)) return true;
+				return (view.activeFloors[buildingId] ?? view.activeFloor) === floor;
+			});
 
-		for (const [floor, layers] of Object.entries(routeLayersByFloor)) {
+		for (const layers of Object.values(routeLayersByFloor)) {
 			for (const layer of layers ?? []) {
-				if (isVisible(layer, Number(floor))) {
+				if (isVisible(layer)) {
 					if (!map.hasLayer(layer)) layer.addTo(map);
 					layer.bringToFront();
 				} else {
@@ -128,9 +140,9 @@ export function createRouteLayer(
 				}
 			}
 		}
-		for (const [floor, markers] of Object.entries(routeMarkersByFloor)) {
+		for (const markers of Object.values(routeMarkersByFloor)) {
 			for (const marker of markers ?? []) {
-				if (isVisible(marker, Number(floor))) {
+				if (isVisible(marker)) {
 					if (!map.hasLayer(marker)) marker.addTo(map);
 				} else {
 					marker.remove();
@@ -155,7 +167,27 @@ export function createRouteLayer(
 		clearRoute();
 		if (pathIds.length === 0) return;
 
-		const { segments, transitions } = getRouteDisplay([...pathIds], mapNodes);
+		const { segments, transitions } = getRouteDisplay([...pathIds], mapNodes, routeEdges);
+		function addLine(nodes: readonly MapNode[], locations: readonly RouteLocation[]) {
+			if (nodes.length < 2) return;
+			const floor = nodes[0].floor;
+			const line = leaflet.polyline(
+				nodes.map((node) => [node.y, node.x]),
+				{
+					pane: 'route-lines',
+					className: 'route-path',
+					color: '#2563eb',
+					weight: 6,
+					opacity: 0.9,
+					lineCap: 'round',
+					lineJoin: 'round'
+				}
+			);
+			routeLocationsByLayer.set(line, locations);
+			const layers = routeLayersByFloor[floor] ?? [];
+			layers.push(line);
+			routeLayersByFloor[floor] = layers;
+		}
 
 		for (const segment of segments) {
 			const floor = segment[0].floor;
@@ -164,20 +196,22 @@ export function createRouteLayer(
 			floorPoints.push(...points);
 			routePointsByFloor[floor] = floorPoints;
 
-			if (points.length >= 2) {
-				const line = leaflet.polyline(points, {
-					pane: 'route-lines',
-					color: '#2563eb',
-					weight: 6,
-					opacity: 0.9,
-					lineCap: 'round',
-					lineJoin: 'round'
-				});
-				routeBuildingByLayer.set(line, getNodeBuildingId(segment[0]));
-				const floorLayers = routeLayersByFloor[floor] ?? [];
-				floorLayers.push(line);
-				routeLayersByFloor[floor] = floorLayers;
+			let location = locationOf(segment[0]);
+			let buildingNodes = [segment[0]];
+			for (let index = 1; index < segment.length; index++) {
+				const node = segment[index];
+				const nextLocation = locationOf(node);
+				if (nextLocation.buildingId === location.buildingId) {
+					buildingNodes.push(node);
+					continue;
+				}
+				addLine(buildingNodes, [location]);
+				// 棟間の接続線は、両側の階が表示条件を満たすときに表示します。
+				addLine([segment[index - 1], node], [location, nextLocation]);
+				buildingNodes = [node];
+				location = nextLocation;
 			}
+			addLine(buildingNodes, [location]);
 		}
 
 		function addTransitionMarker(
@@ -215,7 +249,7 @@ export function createRouteLayer(
 				interactive: !!onClick,
 				zIndexOffset: 1000
 			});
-			routeBuildingByLayer.set(marker, getNodeBuildingId(node));
+			routeLocationsByLayer.set(marker, [locationOf(node)]);
 			marker.bindTooltip(label, {
 				permanent: true,
 				direction: 'right',
@@ -276,7 +310,7 @@ export function createRouteLayer(
 				interactive: false,
 				zIndexOffset: 2000
 			});
-			routeBuildingByLayer.set(marker, getNodeBuildingId(node));
+			routeLocationsByLayer.set(marker, [locationOf(node)]);
 			const text = document.createElement('span');
 			text.textContent = label;
 			marker.bindTooltip(text, {

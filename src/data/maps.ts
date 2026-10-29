@@ -6,6 +6,8 @@ export type BuildingMap = {
 	/** SVG座標の建物範囲: 左、上、右、下。 */
 	bounds: [number, number, number, number];
 	floors: Record<number, string>;
+	floorOrder?: readonly number[];
+	floorLabels?: Readonly<Record<number, string>>;
 	/** 階を選択していないときに表示する共通図。 */
 	overview?: string;
 };
@@ -63,7 +65,9 @@ export const buildingMaps: BuildingMap[] = [
 		id: 'cafe',
 		name: buildingNames.cafe,
 		bounds: [748, 1195, 832.5, 1272],
-		floors: { 1: 'cafe_F1.svg', [-1]: 'cafe_B1.svg' }
+		floors: { 0: 'cafe_B1.svg', 1: 'cafe_F1.svg' },
+		floorOrder: [1, 0],
+		floorLabels: { 0: '地上' }
 	},
 	{
 		id: 'mah',
@@ -73,7 +77,7 @@ export const buildingMaps: BuildingMap[] = [
 	},
 	{
 		id: 'staircase',
-		name: '中央階段',
+		name: buildingNames.staircase,
 		bounds: [579, 836, 627, 929.5],
 		floors: {
 			1: 'staircase_F1.svg',
@@ -84,15 +88,17 @@ export const buildingMaps: BuildingMap[] = [
 	},
 	{
 		id: 'skybridge',
-		name: '渡り廊下',
+		name: buildingNames.skybridge,
 		bounds: [579, 889.5, 687, 1276.5],
 		floors: { 1: 'skybridge_f1.svg', 2: 'skybridge_f2.svg' }
 	},
 	{
 		id: 'entrance',
-		name: 'エントランス',
+		name: buildingNames.entrance,
 		bounds: [561.5, 1276.5, 766.5, 1324],
 		floors: { 0: 'entrance.svg', 1: 'entrance_f1.svg', 2: 'entrance_f2.svg' },
+		floorOrder: [2, 0, 1],
+		floorLabels: { 0: '地上' },
 		overview: 'entrance.svg'
 	}
 ];
