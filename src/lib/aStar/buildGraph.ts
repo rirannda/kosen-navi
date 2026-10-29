@@ -1,5 +1,7 @@
 import type { Edge, Node, EnhancedEdge } from '../../data/types.ts';
 
+const STAIR_EDGE_COST = 30;
+
 export function buildGraph(nodes: Node[], rawEdges: Edge[], stairEdge: Edge[]) {
 	const nodeMap = new Map(nodes.map((node) => [node.id, node]));
 
@@ -18,7 +20,7 @@ export function buildGraph(nodes: Node[], rawEdges: Edge[], stairEdge: Edge[]) {
 			fromNode: edge.fromNode,
 			toNode: edge.toNode,
 			isStairs: edge.isStairs,
-			weight: Math.hypot(from.x - to.x, from.y - to.y)
+			weight: edge.isStairs ? STAIR_EDGE_COST : Math.hypot(from.x - to.x, from.y - to.y)
 		};
 	});
 

@@ -156,7 +156,7 @@
 			<span class="h-1 w-9 rounded-full bg-[#b8bdc5]" aria-hidden="true"></span>
 		</button>
 		<div
-			class="sheet-content min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 pt-0 pb-[max(16px,env(safe-area-inset-bottom))]"
+			class="sheet-content min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 pt-5 pb-[max(16px,env(safe-area-inset-bottom))]"
 			id={contentId}
 		>
 			{@render children?.()}

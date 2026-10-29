@@ -1,35 +1,35 @@
-export { getRouteDisplay } from './route/routeDisplay';
-export { default as BottomSheet } from './components/BottomSheet.svelte';
+export type { Poi } from '../data/types';
 export type { BottomSheetSnap } from './components/BottomSheet.svelte';
-export { layoutRouteLabels } from './route/labelLayout';
-export type { LabelBounds, RouteLabel } from './route/labelLayout';
-export type { RouteTransition } from './route/routeDisplay';
-export { highlightColors } from './map/highlightColors';
-export { getNearbyBuildings } from './map/nearbyBuildings';
-export { getVisibleBuildings } from './map/visibleBuildings';
-export { layoutFloorControls, MAX_FLOOR_CONTROL_LINE_LENGTH } from './map/floorControlLayout';
-export { getSvgOutlineAnchor, getSvgOutlinePoints } from './map/svgOutline';
-export {
-	createBuildingConnections,
-	DEFAULT_CENTER_FOCUS_RADIUS,
-	getFocusedBuildings
-} from './map/focusedBuildings';
-export type { BuildingFocusPoint, BuildingConnections } from './map/focusedBuildings';
+export { default as BottomSheet } from './components/BottomSheet.svelte';
+export type { ConnectedFloorLookup } from './map/connectedFloors';
+export { createConnectedFloorLookup } from './map/connectedFloors';
 export type {
 	FloorControl,
 	FloorControlBuilding,
 	FloorControlPlacement,
 	FloorControlSide
 } from './map/floorControlLayout';
-export { createConnectedFloorLookup } from './map/connectedFloors';
-export type { ConnectedFloorLookup } from './map/connectedFloors';
+export { layoutFloorControls, MAX_FLOOR_CONTROL_LINE_LENGTH } from './map/floorControlLayout';
+export type { BuildingConnections, BuildingFocusPoint } from './map/focusedBuildings';
+export {
+	createBuildingConnections,
+	DEFAULT_CENTER_FOCUS_RADIUS,
+	getFocusedBuildings
+} from './map/focusedBuildings';
 export type { HighlightColor } from './map/highlightColors';
-export type { Poi } from '../data/types';
+export { highlightColors } from './map/highlightColors';
+export { getNearbyBuildings } from './map/nearbyBuildings';
+export { getAvailableFloor, synchronizeFloors } from './map/state/floors';
+export { getSvgOutlineAnchor, getSvgOutlinePoints } from './map/svgOutline';
+export { getVisibleBuildings } from './map/visibleBuildings';
+export type { LabelBounds, RouteLabel } from './route/labelLayout';
+export { layoutRouteLabels } from './route/labelLayout';
+export type { RouteTransition } from './route/routeDisplay';
+export { getRouteDisplay } from './route/routeDisplay';
+export type { NavigationData, NavigationState, PoiHighlights } from './states/navigation.svelte';
 export {
 	createNavigationState,
 	getNavigation,
 	provideNavigation,
 	requireNavigation
 } from './states/navigation.svelte';
-export type { NavigationState, NavigationData, PoiHighlights } from './states/navigation.svelte';
-export { getAvailableFloor, synchronizeFloors } from './map/state/floors';

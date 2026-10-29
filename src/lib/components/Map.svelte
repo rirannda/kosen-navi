@@ -29,6 +29,7 @@
 	import BuildingFloorControls from './BuildingFloorControls.svelte';
 	import BottomSheet from './BottomSheet.svelte';
 	import type { BottomSheetSnap } from './BottomSheet.svelte';
+	import RouteSearchPanel from './layout/RouteSearchPanel.svelte';
 
 	let {
 		navigation = getNavigation() ?? createNavigationState(),

@@ -63,7 +63,7 @@ export const buildingMaps: BuildingMap[] = [
 		id: 'cafe',
 		name: buildingNames.cafe,
 		bounds: [748, 1195, 832.5, 1272],
-		floors: { 1: 'cafe_F1.svg', [-1]: 'cafe_B1.svg' }
+		floors: { 0: 'cafe_B1.svg', 1: 'cafe_F1.svg' }
 	},
 	{
 		id: 'mah',
