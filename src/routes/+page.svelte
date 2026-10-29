@@ -2,7 +2,7 @@
 	import { provideNavigation } from '#lib';
 	import OMUCTMap from '#lib/components/Map.svelte';
 
-	provideNavigation();
+	const navigation = provideNavigation();
 </script>
 
-<OMUCTMap />
+<OMUCTMap {navigation} />

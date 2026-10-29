@@ -38,7 +38,7 @@ function mockMaps(outlines: Record<string, string> = {}) {
 		const building = buildingMaps.find((building) => Object.values(building.floors).includes(file));
 		const [left, top, right, bottom] = building?.bounds ?? [0, 0, 10, 10];
 		return new Response(
-			`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1400 1700" data-map="${file}"><path id="${file}_flame" d="${outlines[building?.id ?? ''] ?? `M${left} ${top}H${right}V${bottom}H${left}Z`}" fill="none" stroke="black" /></svg>`,
+			`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1400 1700" data-map="${file}"><path id="${file}_flame" d="${outlines[building?.id ?? ''] ?? `M${left} ${top}H${right}V${bottom}H${left}Z`}" fill="${building?.id === 'entrance' ? '#fff' : 'none'}" stroke="black" /><g><path id="${file}_room-wall" d="M${left} ${top}H${right}" stroke="black" /></g><path id="${file}_decoration" d="M${left} ${top}H${right}" stroke="none" /></svg>`,
 			{ headers: { 'Content-Type': 'image/svg+xml' } }
 		);
 	});
@@ -70,7 +70,7 @@ function panelsFit(container: HTMLElement): boolean {
 			rect.height > 0 &&
 			rect.left >= viewport.left &&
 			rect.right <= viewport.right &&
-			rect.top >= viewport.top &&
+			rect.top >= viewport.top + 50 &&
 			rect.bottom <= viewport.bottom &&
 			bounds
 				.slice(0, index)
@@ -84,7 +84,172 @@ function panelsFit(container: HTMLElement): boolean {
 	);
 }
 
+function routeTouchesNode(map: LType.Map, node: { x: number; y: number }): boolean {
+	let touches = false;
+	map.eachLayer((layer) => {
+		const line = layer as LType.Polyline;
+		if (line.options.className !== 'route-path') return;
+		const points = line.getLatLngs() as LType.LatLng[];
+		if (
+			points.some(
+				(point) => Math.abs(point.lat - node.y) < 0.001 && Math.abs(point.lng - node.x) < 0.001
+			)
+		)
+			touches = true;
+	});
+	return touches;
+}
+
 describe('Map floor maps', () => {
+	it('別の階を選ぶと経路を隠し、階別表示がなくなると復元し、再ズーム時には選択階で判定する', async () => {
+		mockMaps();
+		const { container, getByRole, navigation } = await renderFloorMap();
+		const map = maps.at(-1)!;
+		await new Promise<void>((resolve) => {
+			map.once('moveend', () => resolve());
+			flushSync(() => navigation.showRoute('node_la_f1_hr_1-1', 'node_la_f1_hr_1-2'));
+		});
+		await expect
+			.poll(() =>
+				container.querySelector('[data-building="la"] button.active')?.textContent?.trim()
+			)
+			.toBe('1F');
+		expect(container.querySelector('.route-path')).not.toBeNull();
+		await getByRole('region', { name: '教養棟の階' })
+			.getByRole('button', { name: '2F', exact: true })
+			.click();
+		await expect.poll(() => container.querySelector('.route-path')).toBeNull();
+		expect(container.querySelector('.route-endpoint-marker')).toBeNull();
+		map.setZoom(-1, { animate: false });
+		await expect.poll(() => container.querySelector('.building-controls')).toBeNull();
+		await expect.poll(() => container.querySelector('.route-path')).not.toBeNull();
+		expect(container.querySelectorAll('.route-endpoint-marker')).toHaveLength(2);
+		map.setView([555, 481], 1, { animate: false });
+		await expect
+			.poll(() =>
+				container.querySelector('[data-building="la"] button.active')?.textContent?.trim()
+			)
+			.toBe('2F');
+		expect(container.querySelector('.route-path')).toBeNull();
+		await getByRole('region', { name: '教養棟の階' })
+			.getByRole('button', { name: '1F', exact: true })
+			.click();
+		await expect.poll(() => container.querySelector('.route-path')).not.toBeNull();
+		expect(navigation.routePath?.[0]).toBe('node_la_f1_hr_1-1');
+	});
+
+	it('屋外と同じ階番号でも建物内の経路を別々に判定し、ズームアウトでは両方を表示する', async () => {
+		mockMaps();
+		const { container, getByRole, navigation } = await renderFloorMap();
+		const map = maps.at(-1)!;
+		const gate = navigation.graph.nodes.find(({ id }) => id === 'node_outdoor_f0_main-gate')!;
+		const goal = navigation.graph.nodes.find(({ id }) => id === 'node_entrance_f0_cnr_east')!;
+		await new Promise<void>((resolve) => {
+			map.once('moveend', () => resolve());
+			flushSync(() => navigation.showRoute(gate.id, goal.id));
+		});
+		await expect
+			.poll(
+				() =>
+					container.querySelector('[data-building="entrance"] button.active')?.textContent?.trim(),
+				{ timeout: 3000 }
+			)
+			.toBe('地上');
+		expect(routeTouchesNode(map, gate)).toBe(true);
+		expect(routeTouchesNode(map, goal)).toBe(true);
+		await getByRole('region', { name: 'エントランスの階' })
+			.getByRole('button', { name: '1F', exact: true })
+			.click();
+		await expect.poll(() => routeTouchesNode(map, goal)).toBe(false);
+		expect(routeTouchesNode(map, gate)).toBe(true);
+		expect(container.querySelector('.route-endpoint-goal')).toBeNull();
+		expect(container.querySelector('.route-endpoint-start')).not.toBeNull();
+		map.setZoom(-1, { animate: false });
+		await expect.poll(() => routeTouchesNode(map, goal)).toBe(true);
+		expect(container.querySelector('.route-endpoint-goal')).not.toBeNull();
+		map.setView([399.75, 664], 1, { animate: false });
+		await expect
+			.poll(() =>
+				container.querySelector('[data-building="entrance"] button.active')?.textContent?.trim()
+			)
+			.toBe('1F');
+		expect(routeTouchesNode(map, goal)).toBe(false);
+		await getByRole('region', { name: 'エントランスの階' })
+			.getByRole('button', { name: '地上', exact: true })
+			.click();
+		await expect.poll(() => routeTouchesNode(map, goal)).toBe(true);
+	});
+	it('エントランスと食堂の地上ボタンを指定順で表示し、0階レイヤーを選択する', async () => {
+		mockMaps();
+		const { container, getByRole } = await renderFloorMap();
+		const map = maps.at(-1)!;
+		map.setView([399.75, 664], 1, { animate: false });
+		await expect
+			.poll(() =>
+				Array.from(container.querySelectorAll('[data-building="entrance"] button')).map((button) =>
+					button.textContent?.trim()
+				)
+			)
+			.toEqual(['2F', '地上', '1F']);
+		await getByRole('region', { name: 'エントランスの階' })
+			.getByRole('button', { name: '地上', exact: true })
+			.click();
+		const entranceSvg = container.querySelector(
+			'.leaflet-floor-maps-pane [data-map="entrance.svg"]'
+		)!;
+		expect(entranceSvg).not.toBeNull();
+		expect(getComputedStyle(entranceSvg.querySelector('[id$="_flame"]')!).fill).toBe(
+			'rgb(255, 255, 255)'
+		);
+		await getByRole('region', { name: 'エントランスの階' })
+			.getByRole('button', { name: '1F', exact: true })
+			.click();
+		expect(container.querySelector('[data-map="entrance_f1.svg"]')).not.toBeNull();
+		map.setView([466.5, 790.25], 2, { animate: false });
+		await expect
+			.poll(() =>
+				Array.from(container.querySelectorAll('[data-building="cafe"] button')).map((button) =>
+					button.textContent?.trim()
+				)
+			)
+			.toEqual(['1F', '地上']);
+		await getByRole('region', { name: '食堂の階' })
+			.getByRole('button', { name: '地上', exact: true })
+			.click();
+		expect(container.querySelector('[data-map="cafe_B1.svg"]')).not.toBeNull();
+	});
+
+	it('正門から入る経路ではエントランスの地上を選び、地図移動でも1階へ戻さない', async () => {
+		mockMaps();
+		const { container, navigation } = await renderFloorMap();
+		flushSync(() => {
+			navigation.setHighlight('poi_main-gate', 'start');
+			navigation.setHighlight('poi_hr_1-1', 'goal');
+			navigation.showRoute('node_outdoor_f0_main-gate', 'node_la_f1_hr_1-1');
+		});
+		await expect
+			.poll(
+				() =>
+					container.querySelector('[data-building="entrance"] button.active')?.textContent?.trim(),
+				{ timeout: 3000 }
+			)
+			.toBe('地上');
+		expect(
+			container.querySelector('.leaflet-floor-maps-pane [data-map="entrance.svg"]')
+		).not.toBeNull();
+		expect(container.querySelector('[data-map="entrance_f1.svg"]')).toBeNull();
+		expect(container.querySelector('.leaflet-route-lines-pane path')).not.toBeNull();
+		expect(
+			container.querySelector('.route-transition-entry[title="エントランス 地上へ"]')
+		).not.toBeNull();
+		const map = maps.at(-1)!;
+		map.setView([399.75, 664], 1, { animate: false });
+		await expect
+			.poll(() =>
+				container.querySelector('[data-building="entrance"] button.active')?.textContent?.trim()
+			)
+			.toBe('地上');
+	});
 	it('シートに帰属表示と階層UIを追従させ、中央では4棟、上では階別図と操作UIを隠す', async () => {
 		mockMaps();
 		const { container, getByRole } = await renderFloorMap();
@@ -104,7 +269,7 @@ describe('Map floor maps', () => {
 		await expect.poll(attributionFollows).toBe(true);
 		await expect.poll(controlsAboveSheet).toBe(true);
 		await sheetButton.click();
-		await expect.poll(() => sheet.getBoundingClientRect().height).toBe(442);
+		await expect.poll(() => sheet.dataset.snap).toBe('middle');
 		await expect.poll(() => container.querySelectorAll('[data-building]').length).toBe(4);
 		expect(container.querySelectorAll('.leaflet-floor-maps-pane > svg').length).toBe(4);
 		await expect.poll(attributionFollows).toBe(true);
@@ -123,7 +288,7 @@ describe('Map floor maps', () => {
 		expect(getComputedStyle(attribution).visibility).toBe('hidden');
 		expect(getComputedStyle(zoom).visibility).toBe('hidden');
 		await sheetButton.click();
-		await expect.poll(() => sheet.getBoundingClientRect().height).toBe(96);
+		await expect.poll(() => sheet.getBoundingClientRect().height).toBe(144);
 		await expect
 			.poll(() => container.querySelectorAll('[data-building]').length)
 			.toBe(MAX_FOCUSED_BUILDINGS);
@@ -148,6 +313,14 @@ describe('Map floor maps', () => {
 		await expect
 			.poll(() => container.querySelectorAll('[data-building]').length)
 			.toBe(MAX_FOCUSED_BUILDINGS);
+		const outline = container.querySelector('.building-floor-outline')!;
+		const outlineStyle = getComputedStyle(outline);
+		expect(outline.id).toMatch(/_flame$/);
+		expect(outline.closest('svg')!.querySelector('path:not([id])')).toBeNull();
+		expect(outlineStyle.stroke).not.toBe('rgb(0, 0, 0)');
+		expect(outlineStyle.filter).toBe('none');
+		expect(outlineStyle.strokeDasharray).toBe('none');
+		expect(outlineStyle.opacity).toBe('1');
 		map.setView([315, 850], 2, { animate: false });
 		await getByRole('region', { name: '体育館の階' })
 			.getByRole('button', { name: '2F', exact: true })
@@ -194,7 +367,9 @@ describe('Map floor maps', () => {
 				)
 				.toBe(true);
 			if (Object.keys(building.floors).length === 1) {
-				expect(container.querySelector(`[data-building="${building.id}"]`)).toBeNull();
+				const label = container.querySelector(`[data-building="${building.id}"]`)!;
+				expect(label.querySelector('h3')?.textContent).toBe(building.name);
+				expect(label.querySelector('button')).toBeNull();
 				expect(container.querySelector(`[data-connector="${building.id}"]`)).toBeNull();
 				expect(
 					container.querySelector(`[data-map="${Object.values(building.floors)[0]}"]`)
@@ -210,7 +385,10 @@ describe('Map floor maps', () => {
 			);
 			for (const floor of floors) {
 				await panel
-					.getByRole('button', { name: floor < 0 ? `B${-floor}` : `${floor}F`, exact: true })
+					.getByRole('button', {
+						name: building.floorLabels?.[floor] ?? (floor < 0 ? `B${-floor}` : `${floor}F`),
+						exact: true
+					})
 					.click();
 				expect(container.querySelector(`[data-map="${building.floors[floor]}"]`)).not.toBeNull();
 				expect(
@@ -227,18 +405,38 @@ describe('Map floor maps', () => {
 		expect(container.querySelector('.campus-map-shade')).toBeNull();
 	});
 
-	it('1階しかない建物だけが見える場所でも階別図は表示し、UIと接続線は表示しない', async () => {
+	it('1階しかない建物は名前のみ表示し、シートより上に配置して上段では隠す', async () => {
 		mockMaps();
-		const { container } = await renderFloorMap();
+		const { container, getByRole } = await renderFloorMap();
 		const map = maps.at(-1)!;
 		container.querySelector<HTMLElement>('.map-wrapper')!.style.width = '300px';
 		container.querySelector<HTMLElement>('.map-wrapper')!.style.height = '600px';
 		map.invalidateSize({ animate: false, pan: false });
 		map.setView([314, 1050], 2, { animate: false });
 		await expect.poll(() => container.querySelector('[data-map="mah.svg"]')).not.toBeNull();
-		await expect.poll(() => container.querySelector('.building-controls')).toBeNull();
+		await expect
+			.poll(() => container.querySelector('[data-building="mah"] h3')?.textContent)
+			.toBe('武道館');
+		const label = container.querySelector<HTMLElement>('[data-building="mah"]')!;
+		expect(label.querySelector('button')).toBeNull();
+		expect(getComputedStyle(label).pointerEvents).toBe('none');
+		await expect
+			.poll(
+				() =>
+					label.getBoundingClientRect().bottom <=
+					container.querySelector('.bottom-sheet')!.getBoundingClientRect().top
+			)
+			.toBe(true);
 		expect(container.querySelector('[data-connector="mah"]')).toBeNull();
 		expect(container.querySelector('[data-map="mah.svg"] .building-floor-outline')).not.toBeNull();
+		const handle = getByRole('button', { name: 'ボトムシートの高さを変更' });
+		await handle.click();
+		await handle.click();
+		await expect.poll(() => container.querySelector('[data-building="mah"]')).toBeNull();
+		await handle.click();
+		await expect
+			.poll(() => container.querySelector('[data-building="mah"] h3')?.textContent)
+			.toBe('武道館');
 	});
 
 	it.each(['left', 'right', 'top', 'bottom'] as const)(
@@ -353,6 +551,13 @@ describe('Map floor maps', () => {
 				const connector = container.querySelector(`[data-connector="${id}"]`)!;
 				const color = getComputedStyle(panel).borderTopColor;
 				expect(getComputedStyle(connector).stroke).toBe(color);
+				const building = buildingMaps.find((building) => building.id === id)!;
+				const svg = Array.from(
+					container.querySelectorAll<SVGElement>('.building-floor-focused')
+				).find((svg) => Object.values(building.floors).includes(svg.dataset.map!))!;
+				expect(getComputedStyle(svg.querySelector('[id$="_flame"]')!).stroke).toBe(color);
+				expect(getComputedStyle(svg.querySelector('[id$="_room-wall"]')!).stroke).toBe(color);
+				expect(getComputedStyle(svg.querySelector('[stroke="none"]')!).stroke).toBe('none');
 				return color;
 			}
 		);
@@ -438,7 +643,7 @@ describe('Map floor maps', () => {
 		container.querySelector<HTMLElement>('.map-wrapper')!.style.width = '1000px';
 		map.invalidateSize({ animate: false, pan: false });
 		// 接続による補完が必要になるよう、南側の建物を一部表示にします。
-		map.setView([952, 603], 0, { animate: false });
+		map.setView([920, 603], 0, { animate: false });
 		await expect.poll(() => container.querySelector('[data-building="ss2"]')).not.toBeNull();
 		const skybridge = getByRole('region', { name: '渡り廊下の階' });
 		await skybridge.getByRole('button', { name: '2F', exact: true }).click();
@@ -458,7 +663,7 @@ describe('Map floor maps', () => {
 		expect(container.querySelector('[data-map="la-bldg_F1.svg"]')).not.toBeNull();
 		map.setView([399.75, 664], 1, { animate: false });
 		await getByRole('region', { name: 'エントランスの階' })
-			.getByRole('button', { name: '0F', exact: true })
+			.getByRole('button', { name: '地上', exact: true })
 			.click();
 		expect(container.querySelector('[data-map="entrance.svg"]')).not.toBeNull();
 		expect(
@@ -474,20 +679,26 @@ describe('Map floor maps', () => {
 			.toBe(MAX_FOCUSED_BUILDINGS);
 		const map = maps.at(-1)!;
 		map.setView([315, 850], 2, { animate: false });
+		const firstFloor = container.querySelector('[data-map="gym_F1.svg"]')!;
 		await getByRole('region', { name: '体育館の階' })
 			.getByRole('button', { name: '2F', exact: true })
 			.click();
 		const color = getComputedStyle(
 			container.querySelector('[data-building="gym"]')!
 		).borderTopColor;
+		expect(firstFloor.classList.contains('building-floor-focused')).toBe(false);
+		const secondFloor = container.querySelector('[data-map="gym_F2.svg"]')!;
+		expect(getComputedStyle(secondFloor.querySelector('[id$="_room-wall"]')!).stroke).toBe(color);
 		map.setView([616, 867.5], 2, { animate: false });
 		await expect.poll(() => container.querySelector('[data-building="gym"]')).toBeNull();
+		expect(secondFloor.classList.contains('building-floor-focused')).toBe(false);
 		map.setView([315, 850], 2, { animate: false });
 		await expect.poll(() => container.querySelector('[data-building="gym"]')).not.toBeNull();
 		expect(container.querySelector('[data-map="gym_F2.svg"]')).not.toBeNull();
 		expect(getComputedStyle(container.querySelector('[data-building="gym"]')!).borderTopColor).toBe(
 			color
 		);
+		expect(getComputedStyle(secondFloor.querySelector('[id$="_room-wall"]')!).stroke).toBe(color);
 	});
 
 	it('複数棟表示で選択した階に合わせ、経路と始点・終点も切り替える', async () => {

@@ -9,5 +9,9 @@ export const buildingNames: Record<string, string> = {
 	stg: '倉庫',
 	cr: '部室',
 	lib: '図書館',
-	cafe: '食堂'
+	cafe: '食堂',
+	entrance: 'エントランス',
+	skybridge: '渡り廊下',
+	staircase: '中央階段',
+	outdoor: '屋外'
 };

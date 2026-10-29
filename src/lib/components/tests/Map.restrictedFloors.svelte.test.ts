@@ -52,7 +52,7 @@ describe('Map restricted floors', () => {
 		const { container, map, fetchMaps } = await renderRestrictedMap();
 		map.setView([616, 867.5], 2, { animate: false });
 		await expect.poll(() => container.querySelector('[data-map="lib_F2.svg"]')).not.toBeNull();
-		expect(container.querySelector('[data-building="lib"]')).toBeNull();
+		expect(container.querySelector('[data-building="lib"] h3')?.textContent).toBe('図書館');
 		expect(container.querySelector('[data-connector="lib"]')).toBeNull();
 		expect(container.querySelectorAll('[data-building="lib"] button').length).toBe(0);
 		expect(container.querySelector('[data-map="lib_F2.svg"]')).not.toBeNull();
@@ -69,7 +69,7 @@ describe('Map restricted floors', () => {
 		expect(container.querySelector('[data-map="ss-bldg_1_F4.svg"]')).not.toBeNull();
 		map.setView([616, 867.5], 2, { animate: false });
 		await expect.poll(() => container.querySelector('[data-map="lib_F2.svg"]')).not.toBeNull();
-		expect(container.querySelector('[data-building="lib"]')).toBeNull();
+		expect(container.querySelector('[data-building="lib"] h3')?.textContent).toBe('図書館');
 		expect(container.querySelector('[data-connector="lib"]')).toBeNull();
 		expect(container.querySelector('[data-map="lib_F2.svg"]')).not.toBeNull();
 	});
@@ -81,7 +81,7 @@ describe('Map restricted floors', () => {
 		expect(container.querySelector('[data-map="lib_F2.svg"]')).not.toBeNull();
 		component.focusOnPoiId('poi_reading-room');
 		await expect.poll(() => container.querySelector('[data-map="lib_F2.svg"]')).not.toBeNull();
-		expect(container.querySelector('[data-building="lib"]')).toBeNull();
+		expect(container.querySelector('[data-building="lib"] h3')?.textContent).toBe('図書館');
 		expect(container.querySelector('[data-connector="lib"]')).toBeNull();
 		expect(container.querySelector('[data-map="lib_F2.svg"]')).not.toBeNull();
 		expect(container.querySelector('[data-map="lib_F1.svg"]')).toBeNull();

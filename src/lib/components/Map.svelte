@@ -6,7 +6,7 @@
 	import type * as L from 'leaflet';
 	import { baseMapFiles, buildingMaps } from '../../data/maps';
 	import type { BuildingMap } from '../../data/maps';
-	import { createNavigationState, getNavigation } from '../states/navigation.svelte';
+	import type { Node } from '../../data/types';
 	import type { NavigationState, PoiHighlights } from '../states/navigation.svelte';
 	import { highlightColors, highlightRoles } from '../map/highlightColors';
 	import { createConnectedFloorLookup } from '../map/connectedFloors';
@@ -22,23 +22,17 @@
 	import { createRouteLayer } from '../map/routeLayer';
 	import { createPoiLayer } from '../map/poiLayer';
 	import { getNodeBuildingId } from '../map/nodeBuilding';
+	import { getRouteEntryFloors } from '../route/routeFloors';
 	import { getSvgOutlinePoints } from '../map/svgOutline';
 	import { layoutFloorControls } from '../map/floorControlLayout';
 	import type { FloorControlPlacement } from '../map/floorControlLayout';
 	import type { LabelBounds } from '../route/labelLayout';
 	import BuildingFloorControls from './BuildingFloorControls.svelte';
-	import BottomSheet from './BottomSheet.svelte';
+	import BottomSheet, { BOTTOM_SHEET_PEEK_HEIGHT } from './BottomSheet.svelte';
 	import type { BottomSheetSnap } from './BottomSheet.svelte';
 	import RouteSearchPanel from './layout/RouteSearchPanel.svelte';
 
-	let {
-		navigation = getNavigation() ?? createNavigationState(),
-		selectedPoi = $bindable<Poi | null>(null)
-	}: {
-		navigation?: NavigationState;
-		/** 既存利用側向けの選択バインディング。新規利用側はnavigationを共有します。 */
-		selectedPoi?: Poi | null;
-	} = $props();
+	let { navigation }: { navigation: NavigationState } = $props();
 	const initialNavigation = untrack(() => navigation);
 	const getConnectedFloor = createConnectedFloorLookup(
 		initialNavigation.graph.nodes,
@@ -60,15 +54,14 @@
 	let routeLabelFrame: number | undefined;
 	let buildingControlPositions = $state<Record<string, FloorControlPlacement>>({});
 	let bottomSheetSnap = $state<BottomSheetSnap>('bottom');
-	let bottomSheetHeight = $state(96);
+	let settledSheetSnap = $state<BottomSheetSnap>('bottom');
+	let appliedFocusRequest: NavigationState['focusRequest'] = null;
+	let bottomSheetHeight = $state(BOTTOM_SHEET_PEEK_HEIGHT);
 	let previousSheetSnap: BottomSheetSnap = 'bottom';
-	let previousSheetHeight = 96;
-	let sheetMapOffset = 48;
+	let previousSheetHeight = BOTTOM_SHEET_PEEK_HEIGHT;
+	let sheetMapOffset = BOTTOM_SHEET_PEEK_HEIGHT / 2;
 	let adjustingSheet = false;
 	let focusingLocation = false;
-	const switchableBuildings = $derived(
-		view.visibleBuildings.filter((building) => Object.keys(building.floors).length > 1)
-	);
 	let renderedRoute: readonly string[] | null | undefined;
 	let renderedHighlights: PoiHighlights = {};
 
@@ -105,19 +98,23 @@
 
 	$effect(() => {
 		const request = navigation.focusRequest;
-		if (request) untrack(() => focusOnPoiId(request.poiId));
+		if (request && svgLayersReady && bottomSheetSnap === settledSheetSnap) {
+			untrack(() => {
+				if (request === appliedFocusRequest) return;
+				appliedFocusRequest = request;
+				focusOnPoiId(request.poiId);
+			});
+		}
 	});
 
 	function renderNavigation(path = navigation.routePath, highlights = navigation.highlights) {
 		if (!svgLayersReady || disposed) return;
-		if (path !== renderedRoute) {
+		const routeChanged = path !== renderedRoute;
+		let routeStart: Node | undefined;
+		if (routeChanged) {
 			renderedRoute = path;
 			if (path) {
-				const start = routeLayer!.draw(path);
-				if (start) {
-					switchFloor(getNodeBuildingId(start) || view.zoomedBldg, start.floor);
-					routeLayer!.fitFloor(view.activeFloor);
-				}
+				routeStart = routeLayer!.draw(path);
 			} else routeLayer!.clear();
 		}
 		for (const role of highlightRoles) {
@@ -128,6 +125,12 @@
 				const buildingId = getNodeBuildingId(target.node);
 				if (buildingId !== 'outdoor') switchFloor(buildingId, target.node.floor);
 			}
+		}
+		if (routeChanged && path && routeStart) {
+			view.selectRouteFloors(getRouteEntryFloors(path, navigation.graph.nodes));
+			setVisibleBuildings(getViewportBuildings(), false);
+			updateDisplays();
+			routeLayer!.fitFloor(routeStart.floor);
 		}
 		renderedHighlights = highlights;
 		poiLayer!.render(highlights);
@@ -166,7 +169,7 @@
 			};
 		});
 		const buildings = svgLayers!.getControlBuildings(view.activeFloors);
-		const controls = switchableBuildings.flatMap(({ id }) => {
+		const controls = view.visibleBuildings.flatMap(({ id }) => {
 			const panel = buildingControlsContainer!.querySelector<HTMLElement>(
 				`[data-building="${id}"]`
 			);
@@ -236,7 +239,7 @@
 	}
 
 	function setVisibleBuildings(buildings: BuildingMap[], synchronizeSelection = true) {
-		view.setVisibleBuildings(buildings, synchronizeSelection);
+		view.setVisibleBuildings(buildings, synchronizeSelection && !navigation.routePath);
 		scheduleBuildingControls();
 	}
 	function updateDisplays() {
@@ -324,7 +327,8 @@
 					(node) => {
 						switchFloor(getNodeBuildingId(node) || view.zoomedBldg, node.floor);
 						focusOnLocation(node.x, node.y, Math.max(SHOW_UI_ZOOM_THRESHOLD, mountedMap.getZoom()));
-					}
+					},
+					navigation.graph.edges
 				);
 				poiLayer = createPoiLayer(
 					leaflet,
@@ -382,7 +386,7 @@
 >
 	<div bind:this={mapContainer} class="map-container z-1 h-full w-full bg-[#898989]!"></div>
 	<BuildingFloorControls
-		buildings={switchableBuildings}
+		buildings={view.visibleBuildings}
 		positions={buildingControlPositions}
 		colors={view.buildingOutlineColors}
 		activeFloors={view.activeFloors}
@@ -393,7 +397,13 @@
 	<BottomSheet
 		bind:snap={bottomSheetSnap}
 		onheightchange={(height) => (bottomSheetHeight = height)}
-	/>
+		onsettle={(snap, height) => {
+			bottomSheetHeight = height;
+			settledSheetSnap = snap;
+		}}
+	>
+		<RouteSearchPanel {navigation} bind:snap={bottomSheetSnap} />
+	</BottomSheet>
 </div>
 
 <style>

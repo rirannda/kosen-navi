@@ -14,6 +14,33 @@ function display(nodes: Node[]) {
 }
 
 describe('getRouteDisplay', () => {
+	it.each([true, false])(
+		'階の異なる接続でも階段アイコンはエッジの階段フラグに従う (%s)',
+		(isStairs) => {
+			const path = [node('outside', 0, 0, 0, 'outdoor'), node('bridge', 1, 10, 0, 'skybridge')];
+			const result = getRouteDisplay(
+				path.map(({ id }) => id),
+				path,
+				[{ fromNode: 'outside', toNode: 'bridge', isStairs }]
+			);
+			expect(result.transitions[0].icon).toBe(isStairs ? 'stairs' : 'building');
+		}
+	);
+	it('エントランス・渡り廊下・中央階段・地上を表示名で案内する', () => {
+		const nodes = [
+			node('gate', 0, 0, 0, 'outdoor'),
+			node('ground', 0, 1, 0, 'entrance'),
+			node('first', 1, 1, 0, 'entrance'),
+			node('bridge', 1, 2, 0, 'skybridge'),
+			node('stairs', 1, 3, 0, 'staircase')
+		];
+		expect(display(nodes).transitions.map(({ label }) => label)).toEqual([
+			'エントランス 地上へ',
+			'エントランス 1階へ',
+			'渡り廊下 1階へ',
+			'中央階段 1階へ'
+		]);
+	});
 	it('同じ建物・階の経路には移動案内を追加しない', () => {
 		const nodes = [node('node_la_f1_start', 1), node('node_la_f1_goal', 1, 10)];
 		expect(display(nodes)).toEqual({ segments: [nodes], transitions: [] });
