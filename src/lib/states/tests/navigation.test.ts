@@ -22,6 +22,14 @@ afterEach(() => {
 });
 
 describe('navigation state', () => {
+	it('実データの出発地を2I-HRにし、選択や経路は初期化しない', () => {
+		const state = createNavigationState();
+		expect(state.highlights.start).toBe('poi_hr_2i');
+		expect(state.resolvePoi(state.highlights.start!)?.node.id).toBe('node_la_f2_hr_2i');
+		expect(state.selectedPoi).toBeNull();
+		expect(state.routePath).toBeNull();
+		expect(state.focusRequest).toBeNull();
+	});
 	it('バリアフリーの切り替えで実データの経路を再検索し、階段を通らない', () => {
 		const state = createNavigationState();
 		const normal = state.showRoute('node_outdoor_f0_main-gate', 'node_la_f1_hr_1-1');
@@ -96,7 +104,11 @@ describe('navigation state', () => {
 		expect(state.showRoute('a', 'a')).toEqual(['a']);
 		expect(state.showRoute('a', 'isolated')).toBeNull();
 		expect(state.routePath).toBeNull();
+		expect(state.routeError).toBe('選択した場所を結ぶ経路が見つかりません。');
 		expect(state.showRoute('missing', 'b')).toBeNull();
+		expect(state.routeError).not.toBeNull();
+		expect(state.showRoute('a', 'b')).toEqual(['a', 'b']);
+		expect(state.routeError).toBeNull();
 		expect(state.selectedPoi?.id).toBe('poi-a');
 	});
 

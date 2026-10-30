@@ -1,3 +1,4 @@
+import { tapBuilding } from './mapTestHelpers';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { render } from 'vitest-browser-svelte';
 import Map from '../Map.svelte';
@@ -18,7 +19,8 @@ function mockMaps(ready: Promise<void> = Promise.resolve()) {
 	vi.spyOn(globalThis, 'fetch').mockImplementation(async (input) => {
 		await ready;
 		// 正門は実際のSVGを使い、POIとのIDの不一致も検出します。
-		if (String(input).endsWith('main-gate.svg')) return fetchMap(input);
+		if (['master.svg', 'main-gate.svg'].some((file) => String(input).endsWith(file)))
+			return fetchMap(input);
 		return new Response(svgForUrl(String(input)), { headers: { 'Content-Type': 'image/svg+xml' } });
 	});
 }
@@ -69,6 +71,7 @@ describe('Map POI selection', () => {
 		expect(navigation.selectedPoi?.id).toBe('poi_hr_1-1');
 		expect(container.querySelector('#main-gate')!.classList.contains('poi-color-goal')).toBe(true);
 		component.focusOnPoiId('poi_hr_1-1');
+		await tapBuilding(container, 'la');
 		await expect.poll(() => container.querySelectorAll('.poi-highlight').length).toBe(2);
 	});
 
@@ -77,6 +80,7 @@ describe('Map POI selection', () => {
 		const { component, container, getByRole, navigation } = await renderMap();
 		await expect.poll(() => container.querySelector('.leaflet-overlay-pane svg')).not.toBeNull();
 		component.focusOnPoiId('poi_hr_1-1');
+		await tapBuilding(container, 'la');
 		await expect
 			.poll(() => container.querySelector('.poi-selectable'), { timeout: 3000 })
 			.not.toBeNull();
@@ -111,6 +115,7 @@ describe('Map POI selection', () => {
 		const { component, container, getByRole, navigation } = await renderMap();
 		await expect.poll(() => container.querySelector('.leaflet-overlay-pane svg')).not.toBeNull();
 		component.focusOnPoiId('poi_hr_1-1');
+		await tapBuilding(container, 'la');
 		expect(flushSync(() => navigation.setHighlight('poi_hr_1-1'))).toBe(true);
 		await expect
 			.poll(
@@ -135,6 +140,7 @@ describe('Map POI selection', () => {
 			.getByRole('button', { name: '3F', exact: true })
 			.click();
 		component.focusOnPoiId('poi_lab-a-phys');
+		await tapBuilding(container, 'la');
 		await expect
 			.poll(() => container.querySelector('.leaflet-zoom-anim, .leaflet-pan-anim'), {
 				timeout: 3000
@@ -153,6 +159,7 @@ describe('Map POI highlight', () => {
 		const { component, container, getByRole, navigation } = await renderMap();
 		await expect.poll(() => container.querySelector('.leaflet-overlay-pane svg')).not.toBeNull();
 		component.focusOnPoiId('poi_hr_1-3');
+		await tapBuilding(container, 'la');
 		expect(flushSync(() => navigation.setHighlight('poi_hr_1-1', 'start'))).toBe(true);
 		expect(flushSync(() => navigation.setHighlight('poi_hr_1-2', 'goal'))).toBe(true);
 		expect(navigation.selectedPoi).toBeNull();
@@ -193,6 +200,7 @@ describe('Map POI highlight', () => {
 		const { component, container, navigation } = await renderMap();
 		await expect.poll(() => container.querySelector('.leaflet-overlay-pane svg')).not.toBeNull();
 		component.focusOnPoiId('poi_hr_1-1');
+		await tapBuilding(container, 'la');
 		expect(flushSync(() => navigation.setHighlight('poi_hr_1-1', 'start'))).toBe(true);
 		expect(flushSync(() => navigation.setHighlight('poi_hr_1-1', 'goal'))).toBe(true);
 		expect(flushSync(() => navigation.setHighlight('poi_hr_1-1', 'selected'))).toBe(true);
@@ -229,6 +237,7 @@ describe('Map POI highlight', () => {
 		finishLoading();
 		await expect.poll(() => container.querySelector('.leaflet-overlay-pane svg')).not.toBeNull();
 		component.focusOnPoiId('poi_hr_1-4');
+		await tapBuilding(container, 'la');
 		await expect.poll(() => container.querySelectorAll('.poi-highlight').length).toBe(3);
 		expect(
 			container.querySelector('#hr_1-1.poi-selectable')!.classList.contains('poi-color-start')
@@ -243,6 +252,7 @@ describe('Map POI highlight', () => {
 		const { component, container, navigation } = await renderMap();
 		await expect.poll(() => container.querySelector('.leaflet-overlay-pane svg')).not.toBeNull();
 		component.focusOnPoiId('poi_hr_1-1');
+		await tapBuilding(container, 'la');
 		for (const [color, expected] of [
 			['start', 'rgb(34, 197, 94)'],
 			['goal', 'rgb(239, 68, 68)'],
@@ -265,6 +275,7 @@ describe('Map POI highlight', () => {
 		const { component, container, navigation } = await renderMap();
 		await expect.poll(() => container.querySelector('.leaflet-overlay-pane svg')).not.toBeNull();
 		component.focusOnPoiId('poi_hr_1-1');
+		await tapBuilding(container, 'la');
 		expect(flushSync(() => navigation.setHighlight('poi_hr_1-1'))).toBe(true);
 		await expect.poll(() => container.querySelectorAll('.poi-highlight').length).toBe(1);
 		const firstRoom = container.querySelector<SVGGraphicsElement>('.poi-highlight')!;
@@ -276,6 +287,7 @@ describe('Map POI highlight', () => {
 
 		expect(flushSync(() => navigation.setHighlight('poi_lab-a-phys'))).toBe(true);
 		component.focusOnPoiId('poi_lab-a-phys');
+		await tapBuilding(container, 'la');
 		expect(firstRoom.classList.contains('poi-highlight')).toBe(false);
 		await expect
 			.poll(
@@ -322,6 +334,7 @@ describe('Map POI highlight', () => {
 		const { component, container, navigation } = await renderMap();
 		await expect.poll(() => container.querySelector('.leaflet-overlay-pane svg')).not.toBeNull();
 		component.focusOnPoiId('poi_hr_1-1');
+		await tapBuilding(container, 'la');
 		expect(flushSync(() => navigation.setHighlight('poi_hr_1-1'))).toBe(true);
 		await expect.poll(() => container.querySelector('.poi-highlight')?.id).toBe('hr_1-1');
 		expect(flushSync(() => navigation.setHighlight('missing'))).toBe(false);
@@ -343,6 +356,7 @@ describe('Map POI highlight', () => {
 		finishLoading();
 		await expect.poll(() => container.querySelector('.leaflet-overlay-pane svg')).not.toBeNull();
 		component.focusOnPoiId('poi_lab-a-phys');
+		await tapBuilding(container, 'la');
 		await expect.poll(() => container.querySelector('.poi-highlight')?.id).toBe('lab-a-phys');
 		expect(getComputedStyle(container.querySelector('.poi-highlight')!).fill).toBe(
 			'rgb(239, 68, 68)'
@@ -383,6 +397,7 @@ describe('Map POI highlight', () => {
 		finishLoading();
 		await expect.poll(() => container.querySelector('.leaflet-overlay-pane svg')).not.toBeNull();
 		component.focusOnPoiId('poi_hr_1-1');
+		await tapBuilding(container, 'la');
 		expect(container.querySelector('.poi-highlight')).toBeNull();
 		expect(container.querySelector('.poi-name-tooltip')).toBeNull();
 	});

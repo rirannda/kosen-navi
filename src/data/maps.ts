@@ -3,6 +3,8 @@ import { buildingNames } from './buildings';
 export type BuildingMap = {
 	id: string;
 	name: string;
+	/** 共通図でタップする建物のSVG ID。省略時は建物IDを使います。 */
+	svgId?: string;
 	/** SVG座標の建物範囲: 左、上、右、下。 */
 	bounds: [number, number, number, number];
 	floors: Record<number, string>;
@@ -17,12 +19,14 @@ export const baseMapFiles = ['master.svg', 'main-gate.svg'];
 export const buildingMaps: BuildingMap[] = [
 	{
 		id: 'la',
+		svgId: 'la-bldg',
 		name: buildingNames.la,
 		bounds: [381, 1027.5, 581, 1182.5],
 		floors: { 1: 'la-bldg_F1.svg', 2: 'la-bldg_F2.svg', 3: 'la-bldg_F3.svg' }
 	},
 	{
 		id: 'ss1',
+		svgId: 'ss-bldg_1',
 		name: buildingNames.ss1,
 		bounds: [627, 836, 933, 929.5],
 		floors: {
@@ -34,6 +38,7 @@ export const buildingMaps: BuildingMap[] = [
 	},
 	{
 		id: 'ss2',
+		svgId: 'ss-bldg_2',
 		name: buildingNames.ss2,
 		bounds: [256, 836, 579, 929],
 		floors: {
@@ -45,6 +50,7 @@ export const buildingMaps: BuildingMap[] = [
 	},
 	{
 		id: 'cepc',
+		svgId: 'cpec-bldg',
 		name: buildingNames.cepc,
 		bounds: [951.5, 805.5, 1116, 889.5],
 		floors: { 1: 'cepc-bldg_F1.svg', 2: 'cepc-bldg_F2.svg', 3: 'cepc-bldg_F3.svg' }
@@ -77,6 +83,7 @@ export const buildingMaps: BuildingMap[] = [
 	},
 	{
 		id: 'staircase',
+		svgId: 'centralstaircase',
 		name: buildingNames.staircase,
 		bounds: [579, 836, 627, 929.5],
 		floors: {

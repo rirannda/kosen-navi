@@ -22,7 +22,10 @@ export function createNavigationState(data?: NavigationData) {
 	const poiData = data?.pois ?? pois;
 	const poiById = new SvelteMap(poiData.map((poi) => [poi.id, poi]));
 	const nodeById = new SvelteMap(graph.nodes.map((node) => [node.id, node]));
-	let highlights = $state.raw<PoiHighlights>({});
+	const defaultStart = poiById.get('poi_hr_2i');
+	let highlights = $state.raw<PoiHighlights>(
+		defaultStart && nodeById.has(defaultStart.nodeId) ? { start: defaultStart.id } : {}
+	);
 	let routePath = $state.raw<readonly string[] | null>(null);
 	let focusRequest = $state.raw<{ poiId: string } | null>(null);
 	let barrierFree = $state(false);

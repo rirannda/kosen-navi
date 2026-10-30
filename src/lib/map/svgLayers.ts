@@ -6,9 +6,15 @@ import { getNodeBuildingId } from './nodeBuilding';
 import { getSvgOutlinePoints } from './svgOutline';
 
 export const MAP_HEIGHT = 1700;
+export const MAP_WIDTH = 1400;
 export const MAP_BOUNDS: L.LatLngBoundsExpression = [
 	[0, 0],
-	[MAP_HEIGHT, 1400]
+	[MAP_HEIGHT, MAP_WIDTH]
+];
+/** SVGの座標は変えず、上下左右に元の高さ・幅の25%ずつ移動範囲を広げます。 */
+export const MAP_MAX_BOUNDS: L.LatLngBoundsExpression = [
+	[-MAP_HEIGHT * 0.25, -MAP_WIDTH * 0.25],
+	[MAP_HEIGHT * 1.25, MAP_WIDTH * 1.25]
 ];
 
 /** SVGの取得・検索と、建物レイヤーの表示・破棄を担当します。 */
@@ -17,7 +23,8 @@ export function createSvgLayers(
 	map: L.Map,
 	mapContainer: HTMLElement,
 	buildings: readonly BuildingMap[],
-	baseMapFiles: readonly string[]
+	baseMapFiles: readonly string[],
+	onSelectBuilding: (buildingId: string) => void
 ) {
 	const abortController = new AbortController();
 	const elements = new WeakMap<L.SVGOverlay, SVGElement>();
@@ -25,7 +32,34 @@ export function createSvgLayers(
 	const overviews: Record<string, L.SVGOverlay> = {};
 	const baseLayers: L.SVGOverlay[] = [];
 	const visibleLayers = new Set<L.SVGOverlay>();
+	const selectionCleanups: (() => void)[] = [];
 	let disposed = false;
+
+	function enableBuildingSelection(layer: L.SVGOverlay, svg: SVGElement) {
+		const targets = new Map<Element, string>();
+		for (const building of buildings) {
+			const element = svg.querySelector(`#${CSS.escape(building.svgId ?? building.id)}`);
+			if (!element) continue;
+			element.classList.add('building-selectable');
+			targets.set(element, building.id);
+		}
+		const onClick = (event: L.LeafletMouseEvent) => {
+			if (!map.hasLayer(layer)) return;
+			for (
+				let target = event.originalEvent.target;
+				target instanceof Element && target !== svg;
+				target = target.parentElement
+			) {
+				const buildingId = targets.get(target);
+				if (buildingId) {
+					onSelectBuilding(buildingId);
+					return;
+				}
+			}
+		};
+		layer.on('click', onClick);
+		selectionCleanups.push(() => layer.off('click', onClick));
+	}
 
 	async function load() {
 		const files = [
@@ -56,13 +90,16 @@ export function createSvgLayers(
 		for (const file of baseMapFiles) {
 			const layer = loaded.get(file)!;
 			baseLayers.push(layer);
+			enableBuildingSelection(layer, elements.get(layer)!);
 			selectableLayers.push({ layer, buildingId: 'outdoor', floor: 0 });
 			layer.addTo(map);
 		}
 		for (const building of buildings) {
 			if (building.overview) {
-				const svg = elements.get(loaded.get(building.overview)!)!;
-				overviews[building.id] = leaflet.svgOverlay(svg.cloneNode(true) as SVGElement, MAP_BOUNDS);
+				const svg = elements.get(loaded.get(building.overview)!)!.cloneNode(true) as SVGElement;
+				const layer = leaflet.svgOverlay(svg, MAP_BOUNDS, { interactive: true });
+				overviews[building.id] = layer;
+				enableBuildingSelection(layer, svg);
 			}
 			const layers: Partial<Record<number, L.SVGOverlay>> = {};
 			for (const [floor, file] of Object.entries(building.floors)) {
@@ -163,6 +200,8 @@ export function createSvgLayers(
 	function dispose() {
 		disposed = true;
 		abortController.abort();
+		for (const cleanup of selectionCleanups) cleanup();
+		selectionCleanups.length = 0;
 		for (const layer of [
 			...baseLayers,
 			...Object.values(overviews),

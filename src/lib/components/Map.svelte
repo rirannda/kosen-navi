@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { onMount, untrack } from 'svelte';
-	import { SvelteMap } from 'svelte/reactivity';
 	import 'leaflet/dist/leaflet.css';
 	import '../map/mapLayers.css';
 	import type * as L from 'leaflet';
@@ -10,20 +9,12 @@
 	import type { NavigationState, PoiHighlights } from '../states/navigation.svelte';
 	import { highlightColors, highlightRoles } from '../map/highlightColors';
 	import { createConnectedFloorLookup } from '../map/connectedFloors';
-	import {
-		createBuildingConnections,
-		DEFAULT_CENTER_FOCUS_RADIUS,
-		getFocusedBuildings
-	} from '../map/focusedBuildings';
-	import type { BuildingFocusPoint } from '../map/focusedBuildings';
-	import { getVisibleBuildings } from '../map/visibleBuildings';
 	import { createMapViewState } from '../map/state/view.svelte';
-	import { createSvgLayers, MAP_BOUNDS, MAP_HEIGHT } from '../map/svgLayers';
+	import { createSvgLayers, MAP_BOUNDS, MAP_MAX_BOUNDS } from '../map/svgLayers';
 	import { createRouteLayer } from '../map/routeLayer';
 	import { createPoiLayer } from '../map/poiLayer';
 	import { getNodeBuildingId } from '../map/nodeBuilding';
 	import { getRouteEntryFloors } from '../route/routeFloors';
-	import { getSvgOutlinePoints } from '../map/svgOutline';
 	import { layoutFloorControls } from '../map/floorControlLayout';
 	import type { FloorControlPlacement } from '../map/floorControlLayout';
 	import type { LabelBounds } from '../route/labelLayout';
@@ -38,10 +29,7 @@
 		initialNavigation.graph.nodes,
 		initialNavigation.graph.edges
 	);
-	const buildingConnections = createBuildingConnections(buildingMaps, getConnectedFloor);
 	const view = createMapViewState(buildingMaps, getConnectedFloor);
-	const SHOW_UI_ZOOM_THRESHOLD = 0;
-	const FLOOR_DISPLAY_EDGE_MARGIN = 48;
 	let mapContainer: HTMLDivElement;
 	let map: L.Map | undefined;
 	let svgLayers: ReturnType<typeof createSvgLayers> | undefined;
@@ -61,7 +49,8 @@
 	let previousSheetHeight = BOTTOM_SHEET_PEEK_HEIGHT;
 	let sheetMapOffset = BOTTOM_SHEET_PEEK_HEIGHT / 2;
 	let adjustingSheet = false;
-	let focusingLocation = false;
+	let selectedBuildingId: string | undefined;
+	let routeBuildings: BuildingMap[] = [];
 	let renderedRoute: readonly string[] | null | undefined;
 	let renderedHighlights: PoiHighlights = {};
 
@@ -88,7 +77,6 @@
 			adjustingSheet = true;
 			try {
 				if (movement) map!.panBy([0, movement], { animate: false });
-				setVisibleBuildings(getViewportBuildings(height, snap), false);
 				updateDisplays();
 			} finally {
 				adjustingSheet = false;
@@ -113,6 +101,8 @@
 		let routeStart: Node | undefined;
 		if (routeChanged) {
 			renderedRoute = path;
+			const entryFloors = path ? getRouteEntryFloors(path, navigation.graph.nodes) : {};
+			routeBuildings = buildingMaps.filter(({ id }) => entryFloors[id] !== undefined);
 			if (path) {
 				routeStart = routeLayer!.draw(path);
 			} else routeLayer!.clear();
@@ -123,14 +113,18 @@
 			const target = navigation.resolvePoi(id);
 			if (target && poiLayer!.findTarget(id)) {
 				const buildingId = getNodeBuildingId(target.node);
-				if (buildingId !== 'outdoor') switchFloor(buildingId, target.node.floor);
+				if (view.visibleBuildings.some(({ id }) => id === buildingId)) {
+					switchFloor(buildingId, target.node.floor);
+				}
 			}
 		}
 		if (routeChanged && path && routeStart) {
 			view.selectRouteFloors(getRouteEntryFloors(path, navigation.graph.nodes));
-			setVisibleBuildings(getViewportBuildings(), false);
+		}
+		if (routeChanged) {
+			setVisibleBuildings();
 			updateDisplays();
-			routeLayer!.fitFloor(routeStart.floor);
+			if (routeStart) routeLayer!.fitFloor(routeStart.floor);
 		}
 		renderedHighlights = highlights;
 		poiLayer!.render(highlights);
@@ -196,51 +190,18 @@
 		scheduleRouteLabels();
 	}
 
-	function getViewportBuildings(
-		sheetHeight = bottomSheetHeight,
-		sheetSnap = bottomSheetSnap
-	): BuildingMap[] {
-		if (sheetSnap === 'top' || map!.getZoom() < SHOW_UI_ZOOM_THRESHOLD) return [];
-		const size = map!.getSize();
-		const visibleHeight = Math.max(0, size.y - sheetHeight);
-		const margin = FLOOR_DISPLAY_EDGE_MARGIN;
-		if (size.x <= margin * 2 || visibleHeight <= margin * 2) return [];
-		const northWest = map!.containerPointToLatLng([margin, margin]);
-		const southEast = map!.containerPointToLatLng([size.x - margin, visibleHeight - margin]);
-		const candidates = getVisibleBuildings(buildingMaps, [
-			northWest.lng,
-			MAP_HEIGHT - northWest.lat,
-			southEast.lng,
-			MAP_HEIGHT - southEast.lat
-		]);
-		const outlines = new SvelteMap<string, readonly BuildingFocusPoint[]>();
-		for (const { id } of candidates) {
-			const floor = view.activeFloors[id] ?? view.availableFloor(id, view.activeFloor);
-			const outline = svgLayers?.getOutline(id, floor);
-			if (outline instanceof SVGGeometryElement) outlines.set(id, getSvgOutlinePoints(outline));
-		}
-		const center = map!.containerPointToLatLng([size.x / 2, visibleHeight / 2]);
-		const viewportNorthWest = map!.containerPointToLatLng([0, 0]);
-		const viewportSouthEast = map!.containerPointToLatLng([size.x, visibleHeight]);
-		return getFocusedBuildings(
-			candidates,
-			{ x: center.lng, y: MAP_HEIGHT - center.lat },
-			buildingConnections,
-			outlines,
-			sheetSnap === 'middle' ? 4 : 6,
-			DEFAULT_CENTER_FOCUS_RADIUS / map!.getZoomScale(map!.getZoom(), 0),
-			[
-				viewportNorthWest.lng,
-				MAP_HEIGHT - viewportNorthWest.lat,
-				viewportSouthEast.lng,
-				MAP_HEIGHT - viewportSouthEast.lat
-			]
-		);
-	}
-
-	function setVisibleBuildings(buildings: BuildingMap[], synchronizeSelection = true) {
-		view.setVisibleBuildings(buildings, synchronizeSelection && !navigation.routePath);
+	function setVisibleBuildings() {
+		const buildings = navigation.routePath
+			? routeBuildings
+			: buildingMaps.filter(({ id }) => id === selectedBuildingId);
+		view.setVisibleBuildings(buildings, false);
 		scheduleBuildingControls();
+	}
+	function selectBuilding(buildingId: string) {
+		if (navigation.routePath) return;
+		selectedBuildingId = buildingId;
+		setVisibleBuildings();
+		updateDisplays();
 	}
 	function updateDisplays() {
 		if (disposed || !svgLayersReady) return;
@@ -252,20 +213,12 @@
 	}
 	function updateMapState() {
 		if (disposed || !svgLayersReady || adjustingSheet) return;
-		setVisibleBuildings(getViewportBuildings(), !focusingLocation);
 		updateDisplays();
 	}
 	function switchFloor(buildingId: string, floor: number) {
 		if (!map) return;
 		view.selectFloor(buildingId, floor);
-		if (
-			!buildingMaps.some((building) => building.id === buildingId) ||
-			map.getZoom() < SHOW_UI_ZOOM_THRESHOLD
-		) {
-			setVisibleBuildings([]);
-		} else if (!view.visibleBuildings.some(({ id }) => id === buildingId)) {
-			setVisibleBuildings(getViewportBuildings());
-		} else view.synchronize(buildingId);
+		view.synchronize(buildingId);
 		updateDisplays();
 	}
 	function focusOnLocation(x: number, y: number, zoom = 3) {
@@ -275,13 +228,7 @@
 		}
 		const targetZoom = Math.max(map.getMinZoom(), Math.min(map.getMaxZoom(), zoom));
 		const center = map.project([y, x], targetZoom).add([0, bottomSheetHeight / 2]);
-		map.off('moveend', finishLocationFocus);
-		focusingLocation = true;
 		map.flyTo(map.unproject(center, targetZoom), targetZoom, { duration: 1 });
-		map.once('moveend', finishLocationFocus);
-	}
-	function finishLocationFocus() {
-		focusingLocation = false;
 	}
 	export function focusOnPoiId(poiId: string) {
 		const target = navigation.resolvePoi(poiId);
@@ -307,7 +254,7 @@
 					minZoom: -1,
 					maxZoom: 2,
 					zoomControl: true,
-					maxBounds: MAP_BOUNDS,
+					maxBounds: MAP_MAX_BOUNDS,
 					maxBoundsViscosity: 1
 				});
 				map = mountedMap;
@@ -317,7 +264,14 @@
 				] as const) {
 					mountedMap.createPane(name).style.zIndex = String(zIndex);
 				}
-				svgLayers = createSvgLayers(leaflet, mountedMap, mapContainer, buildingMaps, baseMapFiles);
+				svgLayers = createSvgLayers(
+					leaflet,
+					mountedMap,
+					mapContainer,
+					buildingMaps,
+					baseMapFiles,
+					selectBuilding
+				);
 				routeLayer = createRouteLayer(
 					leaflet,
 					mountedMap,
@@ -326,7 +280,7 @@
 					() => view,
 					(node) => {
 						switchFloor(getNodeBuildingId(node) || view.zoomedBldg, node.floor);
-						focusOnLocation(node.x, node.y, Math.max(SHOW_UI_ZOOM_THRESHOLD, mountedMap.getZoom()));
+						focusOnLocation(node.x, node.y, Math.max(0, mountedMap.getZoom()));
 					},
 					navigation.graph.edges
 				);
@@ -362,7 +316,6 @@
 			if (buildingControlFrame !== undefined) cancelAnimationFrame(buildingControlFrame);
 			if (routeLabelFrame !== undefined) cancelAnimationFrame(routeLabelFrame);
 			map?.off('move zoom resize zoomend moveend', updateMapState);
-			map?.off('moveend', finishLocationFocus);
 			map?.off('move zoom resize tooltipopen tooltipclose', scheduleRouteLabels);
 			poiLayer?.dispose();
 			routeLayer?.dispose();
@@ -386,7 +339,7 @@
 >
 	<div bind:this={mapContainer} class="map-container z-1 h-full w-full bg-[#898989]!"></div>
 	<BuildingFloorControls
-		buildings={view.visibleBuildings}
+		buildings={bottomSheetSnap === 'top' ? [] : view.visibleBuildings}
 		positions={buildingControlPositions}
 		colors={view.buildingOutlineColors}
 		activeFloors={view.activeFloors}
