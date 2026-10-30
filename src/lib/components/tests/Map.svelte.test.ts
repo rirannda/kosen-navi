@@ -1,3 +1,4 @@
+import { page } from 'vitest/browser';
 import { tapBuilding } from './mapTestHelpers';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { render } from 'vitest-browser-svelte';
@@ -75,6 +76,38 @@ describe('Map POI selection', () => {
 		await expect.poll(() => container.querySelectorAll('.poi-highlight').length).toBe(2);
 	});
 
+	it.each([390, 1280])(
+		'POIを選んでもシートを下段に保ち、操作ボタンを見切れず表示する (%s)',
+		async (width) => {
+			await page.viewport(width, 844);
+			mockMaps();
+			const { component, container, getByRole } = await renderMap();
+			await expect.poll(() => container.querySelector('.leaflet-overlay-pane svg')).not.toBeNull();
+			component.focusOnPoiId('poi_hr_1-1');
+			await tapBuilding(container, 'la');
+			await expect
+				.poll(() => container.querySelector('.leaflet-zoom-anim'), { timeout: 3000 })
+				.toBeNull();
+			await getByRole('button', { name: 'HR教室:1-1', exact: true }).click();
+			const sheet = container.querySelector<HTMLElement>('.bottom-sheet')!;
+			expect(sheet.dataset.snap).toBe('bottom');
+			expect(sheet.getBoundingClientRect().height).toBe(144);
+			for (const action of ['ここへ行く', '出発地にする']) {
+				const button = Array.from(sheet.querySelectorAll('button')).find(
+					(button) => button.textContent?.trim() === action
+				)!;
+				expect(button.getBoundingClientRect().bottom).toBeLessThanOrEqual(
+					sheet.getBoundingClientRect().bottom
+				);
+				expect(button.getBoundingClientRect().top).toBeGreaterThan(
+					sheet.getBoundingClientRect().top
+				);
+			}
+			const content = container.querySelector<HTMLElement>('.sheet-content')!;
+			expect(content.scrollHeight).toBeLessThanOrEqual(content.clientHeight);
+		}
+	);
+
 	it('図形の内部やグループの子要素からPOIを選択し、親へ選択結果を渡す', async () => {
 		mockMaps();
 		const { component, container, getByRole, navigation } = await renderMap();
@@ -131,7 +164,7 @@ describe('Map POI selection', () => {
 		await getByRole('region', { name: '教養棟の階' })
 			.getByRole('button', { name: '2F', exact: true })
 			.click();
-		const shapes = container.querySelectorAll('#hr_1-1');
+		const shapes = container.querySelectorAll('.leaflet-floor-maps-pane #hr_1-1');
 		expect(shapes.length).toBeGreaterThan(0);
 		for (const shape of shapes) shape.dispatchEvent(new MouseEvent('click', { bubbles: true }));
 		expect(navigation.selectedPoi?.id).toBe('poi_hr_1-1');
@@ -412,6 +445,7 @@ describe('Map route endpoints', () => {
 		expect(
 			flushSync(() => navigation.showRoute('node_la_f1_hr_1-1', 'node_la_f3_lab-a-phys'))
 		).not.toBeNull();
+		await tapBuilding(container, 'la');
 		expect(container.querySelectorAll('.route-endpoint-start').length).toBe(1);
 		expect(container.querySelector('.route-endpoint-start')?.textContent).toBe('S');
 		expect(

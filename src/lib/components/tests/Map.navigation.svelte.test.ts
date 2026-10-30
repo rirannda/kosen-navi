@@ -160,12 +160,6 @@ describe('Map shared navigation', () => {
 		await expect.poll(() => container.querySelector(selector)).not.toBeNull();
 		container.querySelector<HTMLElement>(selector)!.click();
 		await expect.poll(() => container.querySelector('.route-endpoint-goal')).not.toBeNull();
-		await expect
-			.poll(
-				() => container.querySelector('[data-building="la"] button.active')?.textContent?.trim(),
-				// 地図移動の1秒間と、その後の階層UIの描画を待ちます。
-				{ timeout: 3000 }
-			)
-			.toBe('2F');
+		expect(container.querySelector('.building-controls')).toBeNull();
 	});
 });

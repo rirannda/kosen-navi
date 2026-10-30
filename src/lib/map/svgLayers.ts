@@ -41,6 +41,7 @@ export function createSvgLayers(
 			const element = svg.querySelector(`#${CSS.escape(building.svgId ?? building.id)}`);
 			if (!element) continue;
 			element.classList.add('building-selectable');
+			element.setAttribute('data-map-building', building.id);
 			targets.set(element, building.id);
 		}
 		const onClick = (event: L.LeafletMouseEvent) => {
@@ -105,7 +106,12 @@ export function createSvgLayers(
 			for (const [floor, file] of Object.entries(building.floors)) {
 				const layer = loaded.get(file)!;
 				layer.options.pane = 'floor-maps';
-				const outline = elements.get(layer)!.querySelector('[id$="_flame"]');
+				const svg = elements.get(layer)!;
+				svg.setAttribute('data-map-building', building.id);
+				const onClick = () => onSelectBuilding(building.id);
+				layer.on('click', onClick);
+				selectionCleanups.push(() => layer.off('click', onClick));
+				const outline = svg.querySelector('[id$="_flame"]');
 				outline?.classList.add('building-floor-outline');
 				layers[Number(floor)] = layer;
 				selectableLayers.push({ layer, buildingId: building.id, floor: Number(floor) });

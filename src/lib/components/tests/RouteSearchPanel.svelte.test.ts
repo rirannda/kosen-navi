@@ -153,6 +153,9 @@ describe('RouteSearchPanel', () => {
 		expect(container.textContent).toContain('HR教室:1-1');
 		expect(container.querySelector('.poi-description')).toBeNull();
 		expect(container.querySelector('input')).toBeNull();
+		expect(container.querySelector('button')?.textContent).toContain('HR教室:1-1');
+		expect(getByRole('button', { name: 'ここへ行く', exact: true })).toBeDefined();
+		expect(getByRole('button', { name: '出発地にする', exact: true })).toBeDefined();
 		await getByRole('button', { name: 'HR教室:1-1の詳細を表示' }).click();
 		const paragraph = container.querySelector<HTMLElement>('.poi-description')!;
 		expect(paragraph.textContent).toContain(description);
@@ -166,4 +169,16 @@ describe('RouteSearchPanel', () => {
 			.poll(() => container.querySelector<HTMLInputElement>('input[aria-label="行き先"]')?.value)
 			.toBe('HR教室:1-1');
 	});
+
+	it.each(['ここへ行く', '出発地にする'])(
+		'下段の「%s」から選択施設を設定できる',
+		async (action) => {
+			const navigation = createNavigationState();
+			navigation.setHighlight('poi_hr_1-1');
+			const { getByRole } = await render(RouteSearchPanel, { navigation });
+			await getByRole('button', { name: action, exact: true }).click();
+			expect(navigation.highlights[action === 'ここへ行く' ? 'goal' : 'start']).toBe('poi_hr_1-1');
+			expect(navigation.selectedPoi).toBeNull();
+		}
+	);
 });

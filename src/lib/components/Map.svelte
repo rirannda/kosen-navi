@@ -50,9 +50,26 @@
 	let sheetMapOffset = BOTTOM_SHEET_PEEK_HEIGHT / 2;
 	let adjustingSheet = false;
 	let selectedBuildingId: string | undefined;
+	let controlBuildingId = $state<string>();
+	const controlBuildings = $derived(
+		bottomSheetSnap === 'top'
+			? []
+			: view.visibleBuildings.filter(({ id }) => id === controlBuildingId)
+	);
 	let routeBuildings: BuildingMap[] = [];
 	let renderedRoute: readonly string[] | null | undefined;
 	let renderedHighlights: PoiHighlights = {};
+
+	$effect(() => {
+		const attempt = navigation.routeErrorVersion;
+		const error = navigation.routeError;
+		if (!attempt || !error || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+		const animation = mapContainer.parentElement!.animate(
+			[0, -6, 6, -4, 4, 0].map((x) => ({ transform: `translateX(${x}px)` })),
+			{ duration: 360, easing: 'ease-in-out' }
+		);
+		return () => animation.cancel();
+	});
 
 	$effect(() => {
 		const path = navigation.routePath;
@@ -101,6 +118,7 @@
 		let routeStart: Node | undefined;
 		if (routeChanged) {
 			renderedRoute = path;
+			controlBuildingId = path ? undefined : selectedBuildingId;
 			const entryFloors = path ? getRouteEntryFloors(path, navigation.graph.nodes) : {};
 			routeBuildings = buildingMaps.filter(({ id }) => entryFloors[id] !== undefined);
 			if (path) {
@@ -163,7 +181,7 @@
 			};
 		});
 		const buildings = svgLayers!.getControlBuildings(view.activeFloors);
-		const controls = view.visibleBuildings.flatMap(({ id }) => {
+		const controls = controlBuildings.flatMap(({ id }) => {
 			const panel = buildingControlsContainer!.querySelector<HTMLElement>(
 				`[data-building="${id}"]`
 			);
@@ -198,8 +216,22 @@
 		scheduleBuildingControls();
 	}
 	function selectBuilding(buildingId: string) {
-		if (navigation.routePath) return;
-		selectedBuildingId = buildingId;
+		if (navigation.routePath) {
+			if (!routeBuildings.some(({ id }) => id === buildingId)) return;
+		} else selectedBuildingId = buildingId;
+		controlBuildingId = buildingId;
+		setVisibleBuildings();
+		updateDisplays();
+	}
+	function onMapClick(event: L.LeafletMouseEvent) {
+		const target = event.originalEvent.target;
+		if (
+			target instanceof Element &&
+			target.closest('[data-map-building], .route-transition-marker')
+		)
+			return;
+		if (!navigation.routePath) selectedBuildingId = undefined;
+		controlBuildingId = undefined;
 		setVisibleBuildings();
 		updateDisplays();
 	}
@@ -282,7 +314,8 @@
 						switchFloor(getNodeBuildingId(node) || view.zoomedBldg, node.floor);
 						focusOnLocation(node.x, node.y, Math.max(0, mountedMap.getZoom()));
 					},
-					navigation.graph.edges
+					navigation.graph.edges,
+					() => Math.max(0, mountedMap.getSize().y - bottomSheetHeight)
 				);
 				poiLayer = createPoiLayer(
 					leaflet,
@@ -300,6 +333,7 @@
 				for (const { layer, buildingId, floor } of selections)
 					poiLayer.enableSelection(layer, buildingId, floor);
 				svgLayersReady = true;
+				mountedMap.on('click', onMapClick);
 				mountedMap.on('move zoom resize zoomend moveend', updateMapState);
 				mountedMap.on('move zoom resize tooltipopen tooltipclose', scheduleRouteLabels);
 				mountedMap.fitBounds(MAP_BOUNDS);
@@ -316,6 +350,7 @@
 			if (buildingControlFrame !== undefined) cancelAnimationFrame(buildingControlFrame);
 			if (routeLabelFrame !== undefined) cancelAnimationFrame(routeLabelFrame);
 			map?.off('move zoom resize zoomend moveend', updateMapState);
+			map?.off('click', onMapClick);
 			map?.off('move zoom resize tooltipopen tooltipclose', scheduleRouteLabels);
 			poiLayer?.dispose();
 			routeLayer?.dispose();
@@ -339,7 +374,7 @@
 >
 	<div bind:this={mapContainer} class="map-container z-1 h-full w-full bg-[#898989]!"></div>
 	<BuildingFloorControls
-		buildings={bottomSheetSnap === 'top' ? [] : view.visibleBuildings}
+		buildings={controlBuildings}
 		positions={buildingControlPositions}
 		colors={view.buildingOutlineColors}
 		activeFloors={view.activeFloors}

@@ -30,6 +30,7 @@ export function createNavigationState(data?: NavigationData) {
 	let focusRequest = $state.raw<{ poiId: string } | null>(null);
 	let barrierFree = $state(false);
 	let routeError = $state<string | null>(null);
+	let routeErrorVersion = $state(0);
 	let routeRequest: { startId: string; goalId: string } | null = null;
 
 	function resolvePoi(poiId: string): { poi: Poi; node: Node } | undefined {
@@ -64,7 +65,10 @@ export function createNavigationState(data?: NavigationData) {
 			: barrierFree
 				? '階段を使わない経路が見つかりません。条件を変更してください。'
 				: '選択した場所を結ぶ経路が見つかりません。';
-		if (!path) console.error(`経路が見つかりません: ${startId} -> ${goalId}`);
+		if (!path) {
+			routeErrorVersion += 1;
+			console.error(`経路が見つかりません: ${startId} -> ${goalId}`);
+		}
 		return path;
 	}
 
@@ -94,6 +98,9 @@ export function createNavigationState(data?: NavigationData) {
 		},
 		get routeError() {
 			return routeError;
+		},
+		get routeErrorVersion() {
+			return routeErrorVersion;
 		},
 		get highlights() {
 			return highlights;
