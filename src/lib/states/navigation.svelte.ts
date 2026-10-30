@@ -27,7 +27,7 @@ export function createNavigationState(data?: NavigationData) {
 		defaultStart && nodeById.has(defaultStart.nodeId) ? { start: defaultStart.id } : {}
 	);
 	let routePath = $state.raw<readonly string[] | null>(null);
-	let focusRequest = $state.raw<{ poiId: string } | null>(null);
+	let focusRequest = $state.raw<{ poiId: string; showFloor: boolean } | null>(null);
 	let barrierFree = $state(false);
 	let routeError = $state<string | null>(null);
 	let routeErrorVersion = $state(0);
@@ -84,9 +84,9 @@ export function createNavigationState(data?: NavigationData) {
 			barrierFree = enabled;
 			if (routeRequest) showRoute(routeRequest.startId, routeRequest.goalId);
 		},
-		/** 描画側にPOIへのカメラ移動を依頼します。同じPOIでも毎回新しい要求になります。 */
-		requestFocus: (poiId: string) => {
-			focusRequest = { poiId };
+		/** POIへの移動と、必要に応じて階別表示を依頼します。同じPOIでも再実行します。 */
+		requestFocus: (poiId: string, options: { showFloor?: boolean } = {}) => {
+			focusRequest = { poiId, showFloor: options.showFloor ?? false };
 		},
 		clearRoute: () => {
 			routePath = null;

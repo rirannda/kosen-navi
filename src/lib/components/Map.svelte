@@ -108,6 +108,10 @@
 				if (request === appliedFocusRequest) return;
 				appliedFocusRequest = request;
 				focusOnPoiId(request.poiId);
+				if (request.showFloor && !navigation.routePath) {
+					const target = navigation.resolvePoi(request.poiId);
+					if (target) selectBuilding(getNodeBuildingId(target.node));
+				}
 			});
 		}
 	});
