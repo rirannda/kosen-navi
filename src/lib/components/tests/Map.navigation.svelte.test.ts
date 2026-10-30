@@ -1,3 +1,4 @@
+import { tapBuilding } from './mapTestHelpers';
 import { afterEach, describe, expect, expectTypeOf, it, vi } from 'vitest';
 import { render } from 'vitest-browser-svelte';
 import Map from '../Map.svelte';
@@ -7,9 +8,11 @@ import type { NavigationState } from '../../states/navigation.svelte';
 
 function mockMaps(ready: Promise<void> = Promise.resolve()) {
 	const signals: AbortSignal[] = [];
+	const fetchMap = globalThis.fetch.bind(globalThis);
 	vi.spyOn(globalThis, 'fetch').mockImplementation(async (_input, init) => {
 		if (init?.signal) signals.push(init.signal);
 		await ready;
+		if (String(_input).endsWith('master.svg')) return fetchMap(_input);
 		return new Response(
 			'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1400 1700"><path id="hr_1-1" d="M514.5 1151h33v31.5h-33z"/><path id="hr_1-2" d="M481.5 1151h33v31.5h-33z"/></svg>'
 		);
@@ -28,6 +31,7 @@ describe('Map shared navigation', () => {
 		const { component, container, getByRole } = await render(Map, { props: { navigation } });
 		await expect.poll(() => container.querySelector('.leaflet-overlay-pane svg')).not.toBeNull();
 		component.focusOnPoiId('poi_hr_1-1');
+		await tapBuilding(container, 'la');
 		await expect
 			.poll(() => container.querySelector('.leaflet-zoom-anim, .leaflet-pan-anim'), {
 				timeout: 3000
@@ -73,6 +77,7 @@ describe('Map shared navigation', () => {
 		const { component, container } = await render(Map, { props: { navigation } });
 		await expect.poll(() => container.querySelector('.leaflet-overlay-pane svg')).not.toBeNull();
 		component.focusOnPoiId('poi_hr_1-1');
+		await tapBuilding(container, 'la');
 		navigation.setHighlight('poi_hr_1-1');
 		await expect.poll(() => container.querySelector('.poi-highlight')?.id).toBe('hr_1-1');
 		expect(navigation.setHighlight('poi_po-chem')).toBe(true);
@@ -101,6 +106,7 @@ describe('Map shared navigation', () => {
 			.poll(() => second.container.querySelector('.leaflet-overlay-pane svg'))
 			.not.toBeNull();
 		second.component.focusOnPoiId('poi_hr_1-1');
+		await tapBuilding(second.container, 'la');
 		await expect.poll(() => second.container.querySelector('.poi-highlight')?.id).toBe('hr_1-1');
 		expect(second.container.querySelector('.route-endpoint-marker')).toBeNull();
 	});

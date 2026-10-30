@@ -1,4 +1,5 @@
 /* 重ねたSVGの透明な部分は、下にある建物のタップを遮らないようにします。 */
+.leaflet-overlay-pane > svg,
 .leaflet-floor-maps-pane > svg {
 	pointer-events: none !important;
 }
@@ -37,7 +38,9 @@
 }
 
 .poi-selectable,
-.poi-selectable * {
+.poi-selectable *,
+.building-selectable,
+.building-selectable * {
 	cursor: pointer;
 	/* Leafletのpath設定を上書きし、塗りなしの部屋も内部から選択できます。 */
 	pointer-events: all !important;

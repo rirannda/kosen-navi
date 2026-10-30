@@ -7,6 +7,47 @@ import { createNavigationState } from '../../states/navigation.svelte';
 afterEach(() => vi.restoreAllMocks());
 
 describe('RouteSearchPanel', () => {
+	it('出発地に2I-HRを表示し、行き先を選ぶだけで検索できる', async () => {
+		const navigation = createNavigationState();
+		const { container, getByRole } = await render(RouteSearchPanel, { navigation, snap: 'middle' });
+		expect(container.querySelector<HTMLInputElement>('input[aria-label="出発地"]')?.value).toBe(
+			'HR教室:2I'
+		);
+		await getByRole('combobox', { name: '行き先', exact: true }).fill('HR教室:1-1');
+		await userEvent.keyboard('{Enter}');
+		await getByRole('button', { name: 'ルート検索', exact: true }).click();
+		expect(navigation.routePath?.[0]).toBe('node_la_f2_hr_2i');
+		expect(navigation.routePath?.at(-1)).toBe('node_la_f1_hr_1-1');
+	});
+
+	it('経路がないときはエラーを表示し、シートを閉じたり施設情報を開いても表示を保つ', async () => {
+		vi.spyOn(console, 'error').mockImplementation(() => {});
+		const base = createNavigationState();
+		const navigation = createNavigationState({
+			graph: { nodes: base.graph.nodes, edges: [] },
+			pois: base.pois
+		});
+		navigation.setHighlight('poi_hr_1-1', 'goal');
+		const { container, getByRole, rerender } = await render(RouteSearchPanel, {
+			navigation,
+			snap: 'middle'
+		});
+		await getByRole('button', { name: 'ルート検索', exact: true }).click();
+		expect(navigation.routePath).toBeNull();
+		await expect
+			.poll(() => container.querySelector('[role="alert"]')?.textContent)
+			.toContain('選択した場所を結ぶ経路が見つかりません。');
+		await rerender({ navigation, snap: 'bottom' });
+		expect(container.querySelector('[role="alert"]')).not.toBeNull();
+		navigation.setHighlight('poi_hr_1-1');
+		await expect
+			.poll(() => container.querySelector('[aria-label="選択した施設の情報"]'))
+			.not.toBeNull();
+		expect(container.querySelector('[role="alert"]')).not.toBeNull();
+		navigation.clearRoute();
+		await expect.poll(() => container.querySelector('[role="alert"]')).toBeNull();
+	});
+
 	it.each([true, false])(
 		'バリアフリーの切り替えで経路を再検索し、迂回路の有無を表示する (%s)',
 		async (hasDetour) => {

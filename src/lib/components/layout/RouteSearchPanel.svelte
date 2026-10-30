@@ -212,10 +212,10 @@
 						>
 					{/if}
 				</div>
-				{#if navigation.routeError}<p role="alert" class="text-sm text-red-700">
-						{navigation.routeError}
-					</p>{/if}
 			{/if}
 		</form>
+	{/if}
+	{#if navigation.routeError}
+		<p role="alert" class="mt-3 text-sm text-red-700">{navigation.routeError}</p>
 	{/if}
 </div>
