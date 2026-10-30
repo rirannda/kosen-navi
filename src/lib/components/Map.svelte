@@ -251,7 +251,7 @@
 				if (disposed) return;
 				const mountedMap = leaflet.map(mapContainer, {
 					crs: leaflet.CRS.Simple,
-					minZoom: -1,
+					minZoom: -2,
 					maxZoom: 2,
 					zoomControl: true,
 					maxBounds: MAP_MAX_BOUNDS,
