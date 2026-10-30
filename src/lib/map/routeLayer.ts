@@ -25,7 +25,8 @@ export function createRouteLayer(
 		visibleBuildings: readonly { id: string }[];
 	},
 	onTransition: (node: MapNode) => void,
-	routeEdges?: readonly Edge[]
+	routeEdges?: readonly Edge[],
+	getVisibleHeight = () => map.getSize().y
 ) {
 	let routeLayersByFloor: Partial<Record<number, LType.Polyline[]>> = {};
 	let routeMarkersByFloor: Partial<Record<number, LType.Marker[]>> = {};
@@ -38,8 +39,8 @@ export function createRouteLayer(
 	let routeLabels: RouteLabelDisplay[] = [];
 	function updateRouteLabels() {
 		const L = leaflet;
-		if (!routeLabels.length || mapContainer.querySelector('.leaflet-zoom-anim')) return;
-		const viewport = map.getSize();
+		if (!routeLabels.length) return;
+		const viewport = { x: map.getSize().x, y: getVisibleHeight() };
 		const containerRect = mapContainer.getBoundingClientRect();
 		mapContainer.style.setProperty(
 			'--route-label-max-width',
@@ -59,27 +60,48 @@ export function createRouteLayer(
 				'.poi-name-tooltip, .custom-control-panel, .leaflet-control-zoom'
 			) ?? []
 		).map(localBounds);
-		const labels = routeLabels.flatMap((display) => {
-			const tooltip = display.marker.getTooltip();
-			const element = tooltip?.getElement();
-			if (!tooltip || !element || !map.hasLayer(display.marker)) {
-				display.connector?.remove();
-				return [];
-			}
-			tooltip.options.offset = display.offset;
-			element.classList.remove('route-label-displaced');
-			tooltip.update();
+		// アイコンは全て残し、見えている地図の中心に近い3件だけ吹き出しを開きます。
+		const candidates = routeLabels.flatMap((display) => {
+			if (!map.hasLayer(display.marker) || viewport.y <= 0) return [];
 			const anchor = map.latLngToContainerPoint(display.marker.getLatLng());
 			if (
 				anchor.x < -24 ||
 				anchor.x > viewport.x + 24 ||
 				anchor.y < -24 ||
 				anchor.y > viewport.y + 24
-			) {
-				display.connector?.remove();
+			)
 				return [];
-			}
 			obstacles.push({ x: anchor.x - 18, y: anchor.y - 18, width: 36, height: 36 });
+			return [
+				{
+					display,
+					anchor,
+					distance: (anchor.x - viewport.x / 2) ** 2 + (anchor.y - viewport.y / 2) ** 2
+				}
+			];
+		});
+		const nearest = candidates.toSorted((a, b) => a.distance - b.distance).slice(0, 3);
+		for (const display of routeLabels) {
+			const selected = nearest.some((candidate) => candidate.display === display);
+			if (selected) display.marker.openTooltip();
+			else {
+				display.marker.closeTooltip();
+				display.connector?.remove();
+			}
+			// Leafletのフェード中も、対象外の吹き出しを同時に表示しません。
+			display.marker
+				.getTooltip()
+				?.getElement()
+				?.style.setProperty('visibility', selected ? 'visible' : 'hidden');
+		}
+		if (mapContainer.querySelector('.leaflet-zoom-anim')) return;
+		const labels = nearest.flatMap(({ display, anchor }) => {
+			const tooltip = display.marker.getTooltip();
+			const element = tooltip?.getElement();
+			if (!tooltip || !element) return [];
+			tooltip.options.offset = display.offset;
+			element.classList.remove('route-label-displaced');
+			tooltip.update();
 			return [{ display, tooltip, element, anchor, bounds: localBounds(element) }];
 		});
 		const placements = layoutRouteLabels(
@@ -176,6 +198,7 @@ export function createRouteLayer(
 				{
 					pane: 'route-lines',
 					className: 'route-path',
+					interactive: false,
 					color: '#2563eb',
 					weight: 6,
 					opacity: 0.9,
@@ -339,7 +362,10 @@ export function createRouteLayer(
 	}
 
 	function clearRoute() {
-		for (const label of routeLabels) label.connector?.remove();
+		for (const label of routeLabels) {
+			label.marker.getTooltip()?.getElement()?.style.setProperty('visibility', 'hidden');
+			label.connector?.remove();
+		}
 		routeLabels = [];
 		for (const layers of Object.values(routeLayersByFloor)) {
 			for (const layer of layers ?? []) layer.remove();

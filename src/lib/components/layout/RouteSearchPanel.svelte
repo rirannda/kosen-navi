@@ -19,6 +19,7 @@
 	const id = $props.id();
 	let startQuery = $state('');
 	let goalQuery = $state('');
+	let errorMessage = $state<HTMLParagraphElement>();
 	const expanded = $derived(snap !== 'bottom');
 	const poi = $derived(navigation.selectedPoi);
 	const location = $derived(poi ? navigation.resolvePoi(poi.id) : undefined);
@@ -48,6 +49,11 @@
 	});
 	$effect(() => {
 		if (goal) goalQuery = goal.poi.name;
+	});
+
+	$effect(() => {
+		const attempt = navigation.routeErrorVersion;
+		if (attempt && navigation.routeError) errorMessage?.scrollIntoView({ block: 'nearest' });
 	});
 
 	function search(role: Role, query: string) {
@@ -85,7 +91,7 @@
 
 <div class="route-search-panel mx-auto w-full max-w-2xl text-slate-900">
 	{#if poi}
-		<section aria-label="選択した施設の情報" class="space-y-4">
+		<section aria-label="選択した施設の情報" class={expanded ? 'space-y-4' : 'space-y-1'}>
 			<div class="flex items-start justify-between gap-3">
 				<div class="min-w-0">
 					{#if expanded}
@@ -93,18 +99,25 @@
 					{:else}
 						<button
 							type="button"
-							class="line-clamp-2 text-left text-lg leading-6 font-semibold break-words"
+							class="block w-full truncate text-left text-base leading-5 font-semibold"
 							aria-label={`${poi.name}の詳細を表示`}
 							onclick={() => (snap = 'middle')}>{poi.name}</button
 						>
 					{/if}
-					<p class="mt-1 text-sm text-slate-500">
+					<p
+						class={expanded
+							? 'mt-1 text-sm text-slate-500'
+							: 'truncate text-xs leading-3 text-slate-500'}
+					>
 						{[building?.name, floorName].filter(Boolean).join(' · ')}
 					</p>
 				</div>
 				<button
 					type="button"
-					class="flex size-11 shrink-0 items-center justify-center rounded-full bg-slate-100 text-2xl text-slate-600 hover:bg-slate-200"
+					class={[
+						'flex shrink-0 items-center justify-center rounded-full bg-slate-100 text-slate-600 hover:bg-slate-200',
+						expanded ? 'size-11 text-2xl' : 'size-8 text-xl'
+					]}
 					aria-label="施設情報を閉じる"
 					onclick={() => navigation.clearHighlight('selected')}>×</button
 				>
@@ -120,19 +133,25 @@
 						{poi.description}
 					</p>
 				{/if}
-				<div class="flex flex-wrap gap-2">
-					<button
-						type="button"
-						class="min-h-11 rounded-full bg-blue-600 px-5 py-2 text-sm font-semibold text-white hover:bg-blue-700"
-						onclick={() => useSelectedPoi('goal')}>ここへ行く</button
-					>
-					<button
-						type="button"
-						class="min-h-11 rounded-full border border-slate-300 px-5 py-2 text-sm font-semibold hover:bg-slate-50"
-						onclick={() => useSelectedPoi('start')}>出発地にする</button
-					>
-				</div>
 			{/if}
+			<div class="flex flex-wrap gap-2">
+				<button
+					type="button"
+					class={[
+						'rounded-full bg-blue-600 text-sm font-semibold text-white hover:bg-blue-700',
+						expanded ? 'min-h-11 px-5 py-2' : 'min-h-10 px-4 py-1.5'
+					]}
+					onclick={() => useSelectedPoi('goal')}>ここへ行く</button
+				>
+				<button
+					type="button"
+					class={[
+						'rounded-full border border-slate-300 text-sm font-semibold hover:bg-slate-50',
+						expanded ? 'min-h-11 px-5 py-2' : 'min-h-10 px-4 py-1.5'
+					]}
+					onclick={() => useSelectedPoi('start')}>出発地にする</button
+				>
+			</div>
 		</section>
 	{:else}
 		<form class="space-y-3" aria-label="経路検索" onsubmit={navigate}>
@@ -216,6 +235,12 @@
 		</form>
 	{/if}
 	{#if navigation.routeError}
-		<p role="alert" class="mt-3 text-sm text-red-700">{navigation.routeError}</p>
+		<p
+			bind:this={errorMessage}
+			role="alert"
+			class="mt-3 scroll-mb-4 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm font-medium text-red-700"
+		>
+			{navigation.routeError}
+		</p>
 	{/if}
 </div>
