@@ -69,7 +69,7 @@
 		navigation.clearRoute();
 		navigation.setHighlight(poiId, role);
 		if (snap !== 'middle') snap = 'middle';
-		navigation.requestFocus(poiId);
+		navigation.requestFocus(poiId, { showFloor: role === 'goal' });
 	}
 
 	function useSelectedPoi(role: Role) {

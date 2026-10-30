@@ -126,8 +126,10 @@ describe('RouteSearchPanel', () => {
 		await userEvent.keyboard('{Enter}');
 		expect(navigation.highlights.goal).toBe('poi_hr_1-1');
 		expect(navigation.focusRequest?.poiId).toBe('poi_hr_1-1');
+		expect(navigation.focusRequest?.showFloor).toBe(true);
 		await getByRole('combobox', { name: '出発地', exact: true }).fill('HR教室:1-2');
 		await getByRole('button', { name: 'HR教室:1-2', exact: true }).click();
+		expect(navigation.focusRequest?.showFloor).toBe(false);
 		await getByRole('button', { name: 'ルート検索', exact: true }).click();
 		expect(navigation.routePath?.[0]).toBe('node_la_f1_hr_1-2');
 		expect(navigation.routePath?.at(-1)).toBe('node_la_f1_hr_1-1');

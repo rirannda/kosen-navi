@@ -141,6 +141,50 @@ describe('Map floor maps', () => {
 		expect(container.querySelector('[data-map="lib_F2.svg"]')).not.toBeNull();
 	});
 
+	it('行き先を確定したときに対象棟の階別図を表示し、再検索では棟と階を切り替える', async () => {
+		mockMaps();
+		const { container, getByRole, navigation } = await renderFloorMap();
+		const goal = getByRole('combobox', { name: '行き先', exact: true });
+		await goal.fill('HR教室:3I');
+		expect(container.querySelector('.leaflet-floor-maps-pane > svg')).toBeNull();
+		await getByRole('button', { name: 'HR教室:3I', exact: true }).click();
+		await expect.poll(() => container.querySelector('[data-map="la-bldg_F3.svg"]')).not.toBeNull();
+		expect(container.querySelector('[data-building="la"] button.active')?.textContent?.trim()).toBe(
+			'3F'
+		);
+		expect(navigation.routePath).toBeNull();
+		await goal.fill('ソフトウェア工学実験室');
+		await getByRole('button', { name: 'ソフトウェア工学実験室', exact: true }).click();
+		await expect
+			.poll(() => container.querySelector('[data-map="ss-bldg_1_F3.svg"]'))
+			.not.toBeNull();
+		expect(container.querySelector('[data-map="la-bldg_F3.svg"]')).toBeNull();
+		expect(container.querySelectorAll('.leaflet-floor-maps-pane > svg')).toHaveLength(1);
+		await goal.fill('正門');
+		await getByRole('button', { name: '正門', exact: true }).click();
+		await expect.poll(() => container.querySelector('.leaflet-floor-maps-pane > svg')).toBeNull();
+		expect(container.querySelector('.building-controls')).toBeNull();
+	});
+
+	it('出発地の確定では階別図を開かず、行き先確定後もルート表示の階UIは閉じて開始する', async () => {
+		mockMaps();
+		const { container, getByRole, navigation } = await renderFloorMap();
+		await getByRole('button', { name: 'ボトムシートの高さを変更' }).click();
+		await getByRole('combobox', { name: '出発地', exact: true }).fill('HR教室:1-2');
+		await getByRole('button', { name: 'HR教室:1-2', exact: true }).click();
+		await expect
+			.poll(() => container.querySelector('.leaflet-zoom-anim'), { timeout: 3000 })
+			.toBeNull();
+		expect(container.querySelector('.leaflet-floor-maps-pane > svg')).toBeNull();
+		await getByRole('combobox', { name: '行き先', exact: true }).fill('HR教室:1-1');
+		await getByRole('button', { name: 'HR教室:1-1', exact: true }).click();
+		await expect.poll(() => container.querySelector('[data-map="la-bldg_F1.svg"]')).not.toBeNull();
+		await getByRole('button', { name: 'ルート検索', exact: true }).click();
+		await expect.poll(() => container.querySelector('.route-path')).not.toBeNull();
+		expect(navigation.routePath).not.toBeNull();
+		expect(container.querySelector('.building-controls')).toBeNull();
+	});
+
 	it('各棟の共通図を選んで公開階を切り替え、選択前の階別図を取り除く', async () => {
 		const fetchMaps = mockMaps();
 		const { container, getByRole } = await renderFloorMap();
